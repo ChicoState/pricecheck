@@ -3,8 +3,9 @@
     "description": "This extension shows the best price among all the online webstores",
     "version": "1.0",
     "manifest_version": 3,
+    "permissions": ["activeTab", "scripting", "storage"],
     "action": {
-        "default_popup": "index.html",
-        "default_icon": "pricechecker.png"
-      }
-}
+      "default_popup": "index.html",
+      "default_icon": "pricechecker.png"
+    }
+  }  
