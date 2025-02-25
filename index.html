@@ -1,41 +1,22 @@
-<!-- <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Pricechecker</title>
-  </head>
-  <body>
-    <h1>Pricechecker</h1>
-    <button id="checkPrice">Check Price</button>
-    <script src="popup.js"></script>
-  </body>
-</html> -->
-
 <!DOCTYPE html>
 <html>
   <head>
+    <link rel="stylesheet" href="style.css">
     <meta charset="utf-8">
     <title>Pricechecker</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 10px;
-      }
-      .result {
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin-top: 10px;
-        border-radius: 5px;
-      }
-      .loading {
-        font-style: italic;
-      }
-    </style>
   </head>
   <body>
-    <h1>Pricechecker</h1>
-    <button id="checkPrice">Check Price</button>
+    <h1 class="title">Pricechecker</h1>
+
+    <div id="product-picture"> 
+      <p class="product-name">Product picture: <span id="productName">Loading...</span></p>
+    </div>
+
+    <button class="button">Compare Prices</button>
+
     <div id="result"></div>
+
     <script src="popup.js"></script>
   </body>
 </html>
+
