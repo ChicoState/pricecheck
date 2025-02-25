@@ -6,7 +6,7 @@
 
 console.log("Popup loaded.");
 
-document.getElementById("checkPrice").addEventListener("click", async () => {
+document.getElementById("button").addEventListener("click", async () => {
   document.getElementById("result").innerHTML = '<p class="loading">Checking prices...</p>';
   
   try {
