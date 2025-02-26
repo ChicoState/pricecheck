@@ -1,49 +1,60 @@
-// console.log("This is a popup!");
+document.addEventListener("DOMContentLoaded", function () {
+  const checkPriceButton = document.getElementById("checkPrice");
+  const resultDiv = document.getElementById("result");
 
-// document.getElementById("checkPrice").addEventListener("click", () => {
-//   console.log("Price check initiated.");
-// });
+  checkPriceButton.addEventListener("click", function () {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          let currentTab = tabs[0];
+          console.log("Current Tab URL:", currentTab.url); // Debug log for URL
 
-console.log("Popup loaded.");
-
-document.getElementById("checkPrice").addEventListener("click", async () => {
-  document.getElementById("result").innerHTML = '<p class="loading">Checking prices...</p>';
-  
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab.id) throw new Error("No active tab found.");
-    
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['content-price.js']
-    });
-    
-    chrome.runtime.onMessage.addListener(function handler(message, sender, sendResponse) {
-      if (message.type === "PRODUCT_DATA") {
-        console.log("Product data received: ", message.data);
-        chrome.runtime.onMessage.removeListener(handler);
-        chrome.runtime.sendMessage({ type: "FETCH_PRICES", data: message.data }, (response) => {
-          document.getElementById("result").innerHTML = formatResult(response);
-        });
-      }
-    });
-  } catch (error) {
-    console.error("Error in price check: ", error);
-    document.getElementById("result").textContent = "Error checking price. See console for details.";
-  }
+          // Check if the URL is from supported websites (Amazon, eBay, Best Buy)
+          if (currentTab && (currentTab.url.includes("amazon.com") || 
+                             currentTab.url.includes("ebay.com") || 
+                             currentTab.url.includes("bestbuy.com"))) {
+              
+              // Execute script to extract product data
+              chrome.scripting.executeScript({
+                  target: { tabId: currentTab.id },
+                  function: extractProductData
+              }, (results) => {
+                  if (chrome.runtime.lastError) {
+                      console.error("Error in price check:", chrome.runtime.lastError);
+                      resultDiv.textContent = "Failed to fetch prices. Try again.";
+                  } else {
+                      console.log("Product data:", results);
+                      if (results && results[0] && results[0].result) {
+                          resultDiv.textContent = `Title: ${results[0].result.title}, Price: ${results[0].result.price}`;
+                      } else {
+                          resultDiv.textContent = "No product data found.";
+                      }
+                  }
+              });
+          } else {
+              console.error("Invalid tab. Make sure you're on a supported website.");
+              resultDiv.textContent = "Please visit a supported website like Amazon, eBay, or Best Buy.";
+          }
+      });
+  });
 });
 
-function formatResult(data) {
-  if (!data || !data.results || data.results.length === 0) {
-    return "<p>No price data found.</p>";
-  }
-  let html = "<h2>Price Comparison</h2>";
-  data.results.forEach(item => {
-    html += `<div class="result">
-      <strong>${item.store}</strong><br>
-      Price: ${item.price}<br>
-      <a href="${item.link}" target="_blank">View Product</a>
-    </div>`;
-  });
-  return html;
+// Function to extract product data from the webpage
+function extractProductData() {
+    let title = "";
+    let price = "";
+    
+    title = document.querySelector("#productTitle")?.textContent.trim();
+    price = document.querySelector("#priceblock_ourprice, #priceblock_dealprice")?.textContent.trim();
+    
+    if (!title) {
+      title = document.querySelector("h1.prod-ProductTitle")?.textContent.trim();
+    }
+    if (!price) {
+      price = document.querySelector("span.price-characteristic")?.textContent.trim();
+    }
+    
+    if (!title) {
+      title = document.title;
+    }
+    
+    return { title, price };
 }

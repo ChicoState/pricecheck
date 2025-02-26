@@ -5,9 +5,10 @@
     "manifest_version": 3,
     "permissions": ["activeTab", "scripting", "storage"],
     "host_permissions": [
-      "https://api.example.com/*",
-      "https://*.amazon.com/*",
-      "https://*.walmart.com/*"
+      "https://app.scrapingbee.com/*",
+      "https://www.amazon.com/*",
+      "https://www.ebay.com/*",
+      "https://www.bestbuy.com/*"
     ],
     "action": {
       "default_popup": "index.html",
