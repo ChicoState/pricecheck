@@ -1,66 +1,47 @@
-// console.log("Service worker running");
+const SCRAPINGBEE_API_KEY = "P766I99FFW2U4EO9FTHELF9FM03CVN8LFVP7NJ5KHOO99AAI5IDAG9B46L3GLPOL32U5K5LE4RYZJYIJ"; // Replace with your real API key
 
-// chrome.runtime.onInstalled.addListener(() => {
-//     chrome.action.setBadgeText({ text: "OFF" });
-//     console.log("Extension installed!"); 
-// });
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+    if (message.type === "FETCH_PRICES") {
+        console.log("Received search query:", message.query);
 
-// const extensions = 'https://developer.chrome.com/docs/extensions';
-// const webstore = 'https://developer.chrome.com/docs/webstore';
+        const searchQuery = encodeURIComponent(message.query);
+        const scrapingBeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${SCRAPINGBEE_API_KEY}&url=https://www.amazon.com/s?k=${searchQuery}`;
 
-// chrome.action.onClicked.addListener(async (tab) => {
-//     let nextState = "OFF"; // Declare and initialize here!  Important!
+        console.log("Fetching data from ScrapingBee:", scrapingBeeUrl);
 
-//     if (tab.url.startsWith(extensions) || tab.url.startsWith(webstore)) {
-//       const prevState = await chrome.action.getBadgeText({ tabId: tab.id });
-//       nextState = prevState === 'ON' ? 'OFF' : 'ON'; // Now assign the correct value
-//       await chrome.action.setBadgeText({
-//         tabId: tab.id,
-//         text: nextState,
-//       });
-//     } 
+        try {
+            const response = await fetch(scrapingBeeUrl);
 
-// });
+            if (!response.ok) {
+                console.error("API request failed:", response.status);
+                sendResponse({ error: `API request failed with status ${response.status}` });
+                return;
+            }
 
-console.log("Service worker running");
+            const data = await response.text();
+            console.log("ScrapingBee Response Data:", data);
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.action.setBadgeText({ text: "OFF" });
-  console.log("Extension installed!");
-});
+            if (!data || data.length < 100) {
+                console.error("Empty or short response from ScrapingBee");
+                sendResponse({ error: "Empty response from API" });
+                return;
+            }
 
-chrome.action.onClicked.addListener(async (tab) => {
-  const extensionsUrl = 'https://developer.chrome.com/docs/extensions';
-  const webstoreUrl = 'https://developer.chrome.com/docs/webstore';
-  let nextState = "OFF";
+            // Mock data (since parsing raw HTML is difficult here)
+            const mockData = {
+                results: [
+                    { store: "Amazon", price: "$99.99", link: `https://www.amazon.com/s?k=${searchQuery}` },
+                    { store: "eBay", price: "$95.99", link: `https://www.ebay.com/sch/i.html?_nkw=${searchQuery}` },
+                    { store: "Best Buy", price: "$97.50", link: `https://www.bestbuy.com/site/searchpage.jsp?st=${searchQuery}` }
+                ]
+            };
 
-  if (tab.url.startsWith(extensionsUrl) || tab.url.startsWith(webstoreUrl)) {
-    const prevState = await chrome.action.getBadgeText({ tabId: tab.id });
-    nextState = prevState === 'ON' ? 'OFF' : 'ON';
-    await chrome.action.setBadgeText({
-      tabId: tab.id,
-      text: nextState,
-    });
-  }
-});
+            sendResponse(mockData);
+        } catch (error) {
+            console.error("Error fetching prices:", error);
+            sendResponse({ error: "Network request failed" });
+        }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "FETCH_PRICES") {
-    console.log("Fetching competitor prices for product:", message.data);
-    const product = message.data;
-
-    const mockData = {
-      results: [
-        { store: "Amazon", price: product.price || "$99.99", link: "https://amazon.com/dp/example" },
-        { store: "Walmart", price: "$95.99", link: "https://walmart.com/ip/example" },
-        { store: "Best Buy", price: "$97.50", link: "https://bestbuy.com/site/example" }
-      ]
-    };
-
-    setTimeout(() => {
-      sendResponse(mockData);
-    }, 1500);
-
-    return true;
-  }
+        return true; // Keep the response channel open for async requests
+    }
 });
