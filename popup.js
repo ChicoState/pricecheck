@@ -4,9 +4,9 @@
 //   console.log("Price check initiated.");
 // });
 
-console.log("Popup loaded.");
+//console.log("Popup loaded.");
 
-document.getElementById("button").addEventListener("click", async () => {
+/*document.getElementById("button").addEventListener("click", async () => {
   document.getElementById("result").innerHTML = '<p class="loading">Checking prices...</p>';
   
   try {
@@ -46,4 +46,28 @@ function formatResult(data) {
     </div>`;
   });
   return html;
-}
+}*/
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  const darkModeButton = document.getElementById("darkmodebutton");
+
+  chrome.storage.sync.get("darkMode", function(data) {
+    if (data.darkMode) {
+      document.body.classList.add("dark-mode");
+    }
+  });
+
+  
+  darkModeButton.addEventListener("click", function() {
+    if (document.body.classList.contains("dark-mode")) {
+      document.body.classList.remove("dark-mode");
+      chrome.storage.sync.set({ darkMode: false });
+    } 
+    
+    else {
+      document.body.classList.add("dark-mode");
+      chrome.storage.sync.set({ darkMode: true });
+    }
+  });
+});
