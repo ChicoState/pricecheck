@@ -1,2 +1,42 @@
+# macOS specific
+.DS_Store
+
+# Python files
+*.pyc
+*.pyo
+__pycache__/
 *.cache
+
+# Django specific files
+*.log
+*.sqlite3
+*.db
+*.bak
+*.swp
+
+# Virtual environment
+venv/
+env/
+ENV/
 *.env
+*.venv
+
+# PyCharm/IDE files
+.idea/
+.vscode/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Build directories
+build/
+dist/
+*.egg-info/
+
+# Secrets and sensitive files
+settings.py
+*.env
+
+# Docker
+docker-compose.yml
+Dockerfile
