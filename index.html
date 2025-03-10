@@ -1,20 +1,429 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="style.css">
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Pricechecker</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1 class="title">Pricechecker</h1>
+    <header>
+      <h1 class="title">Pricechecker</h1>
+      <nav>
+        <button class="nav-button" id="login-btn" onclick="window.open('http://127.0.0.1:8000/', '_blank')">Login</button>
+      </nav>
+    </header>
 
-    <button class="button">Compare Prices</button>
+    <main>
+      <p>Welcome to Pricechecker! Click the button below to compare prices for the product on your current page.</p>
+      <button class="button" id="compare-button">Compare Prices</button>
+      
+      <div id="result"></div>
 
-    <div id="result"></div>
+      <button id="darkmodebutton" class="toggle-button">Dark Mode</button>
 
-    <button id = "darkmodebutton" class = "toggle-button"> Dark Mode </button>
+      <div id="savings-meter">
+        <h2>Your Savings</h2>
+        <p id="savings-info">Total Saved: $0.00</p>
+        <progress id="savings-progress" value="0" max="100"></progress>
+      </div>
+    </main>
 
     <script src="popup.js"></script>
+    <script>
+      const compareButton = document.getElementById("compare-button");
+      compareButton.addEventListener("click", () => {
+        // If the content script has already auto-detected product data, you could use it here.
+        // For demonstration, fallback to a sample product:
+        const productData = { title: "Sample Product", price: "$120.00" };
+        
+        chrome.runtime.sendMessage(
+          { type: "FETCH_PRICES", data: productData },
+          (response) => {
+            if (response?.results) {
+              const resultDiv = document.getElementById("result");
+              resultDiv.innerHTML = "";
+              
+              // Determine the cheapest offer
+              let cheapest = null;
+              response.results.forEach((item) => {
+                const itemPriceNum = parseFloat(item.price.replace(/[$,]/g, ""));
+                if (!cheapest || itemPriceNum < parseFloat(cheapest.price.replace(/[$,]/g, ""))) {
+                  cheapest = item;
+                }
+              });
+
+              // Display prices for each store
+              response.results.forEach((item) => {
+                const el = document.createElement("div");
+                el.className = "result";
+                el.innerHTML = `
+                  <strong>${item.store}</strong><br>
+                  Price: ${item.price}<br>
+                  <a href="${item.link}" target="_blank">Link</a>
+                `;
+                resultDiv.appendChild(el);
+              });
+
+              // Highlight the cheapest store
+              if (cheapest) {
+                const cheapestEl = document.createElement("p");
+                cheapestEl.className = "cheapest";
+                cheapestEl.innerHTML = `Cheapest Store: ${cheapest.store} at ${cheapest.price}`;
+                resultDiv.appendChild(cheapestEl);
+              }
+
+              // Calculate and display savings
+              const userPriceNum = parseFloat(productData.price.replace(/[$,]/g, ""));
+              const cheapestNum  = parseFloat(cheapest.price.replace(/[$,]/g, ""));
+              const saved        = (userPriceNum - cheapestNum).toFixed(2);
+
+              document.getElementById("savings-info").textContent = `Total Saved: $${saved}`;
+              document.getElementById("savings-progress").value = Math.min(saved, 100);
+            }
+          }
+        );
+      });
+    </script>
+  </body>
+</html> -->
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pricechecker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1 class="title">Pricechecker</h1>
+      <nav>
+        <button class="nav-button" onclick="window.open('http://127.0.0.1:8000/', '_blank')">Login</button>
+      </nav>
+    </header>
+    <main>
+      <section class="hero">
+        <p>Compare prices on the product page you're viewing, and find the best deals instantly.</p>
+        <button class="button" id="compare-button">Compare Prices</button>
+      </section>
+      
+      <section id="result"></section>
+      
+      <section class="meter-section">
+        <h2>Your Savings</h2>
+        <p id="savings-info">Total Saved: $0.00</p>
+        <progress id="savings-progress" value="0" max="100"></progress>
+      </section>
+      
+      <section class="toggle-section">
+        <button id="darkmodebutton" class="toggle-button">Dark Mode</button>
+      </section>
+    </main>
+    
+    <script src="popup.js"></script>
+    <script>
+      const compareButton = document.getElementById("compare-button");
+      compareButton.addEventListener("click", () => {
+        // For demonstration, use detected product data or fallback sample
+        const productData = { title: "Sample Product", price: "$120.00" };
+        chrome.runtime.sendMessage({ type: "FETCH_PRICES", data: productData }, (response) => {
+          if (response?.results) {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "";
+            let cheapest = null;
+            response.results.forEach((item) => {
+              const itemPriceNum = parseFloat(item.price.replace(/[$,]/g, ""));
+              if (!cheapest || itemPriceNum < parseFloat(cheapest.price.replace(/[$,]/g, ""))) {
+                cheapest = item;
+              }
+            });
+            response.results.forEach((item) => {
+              const el = document.createElement("div");
+              el.className = "result";
+              el.innerHTML = `
+                <strong>${item.store}</strong><br>
+                Price: ${item.price}<br>
+                <a href="${item.link}" target="_blank">Visit</a>
+              `;
+              resultDiv.appendChild(el);
+            });
+            if (cheapest) {
+              const cheapestEl = document.createElement("p");
+              cheapestEl.className = "cheapest";
+              cheapestEl.innerHTML = `Cheapest: ${cheapest.store} at ${cheapest.price}`;
+              resultDiv.appendChild(cheapestEl);
+            }
+            const userPriceNum = parseFloat(productData.price.replace(/[$,]/g, ""));
+            const cheapestNum  = parseFloat(cheapest.price.replace(/[$,]/g, ""));
+            const saved        = (userPriceNum - cheapestNum).toFixed(2);
+            document.getElementById("savings-info").textContent = `Total Saved: $${saved}`;
+            document.getElementById("savings-progress").value = Math.min(saved, 100);
+          }
+        });
+      });
+    </script>
+  </body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pricechecker</title>
+    <!-- Google Fonts - Using Poppins for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header>
+        <div class="logo-container">
+          <div class="logo-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+          <h1 class="title">Pricechecker</h1>
+        </div>
+        <nav>
+          <button class="nav-button" onclick="window.open('http://127.0.0.1:8000/', '_blank')">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="button-icon">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            Login
+          </button>
+        </nav>
+      </header>
+      
+      <main>
+        <section class="hero">
+          <div class="hero-content">
+            <h2 class="hero-title">Find the Best Deals</h2>
+            <p>Compare prices across multiple stores and save money on your online purchases.</p>
+            <button class="button primary-button" id="compare-button">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="button-icon">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Compare Prices
+            </button>
+          </div>
+          <div class="hero-image">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+          </div>
+        </section>
+        
+        <div id="result-container">
+          <div class="section-header">
+            <h2>Price Comparison</h2>
+            <span class="badge" id="results-count">0 results</span>
+          </div>
+          <section id="result" class="results-grid"></section>
+        </div>
+        
+        <section class="meter-section">
+          <div class="section-header">
+            <h2>Your Savings</h2>
+            <div class="tooltip">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="info-icon">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span class="tooltip-text">Track how much you've saved by using Pricechecker</span>
+            </div>
+          </div>
+          <div class="savings-display">
+            <div class="savings-amount">
+              <p id="savings-info">$0.00</p>
+              <span class="savings-label">Total Saved</span>
+            </div>
+            <div class="progress-container">
+              <progress id="savings-progress" value="0" max="100"></progress>
+              <div class="progress-labels">
+                <span>$0</span>
+                <span>$50</span>
+                <span>$100+</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+      
+      <footer>
+        <div class="toggle-section">
+          <button id="darkmodebutton" class="toggle-button">
+            <span class="toggle-icon moon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </span>
+            <span class="toggle-icon sun">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+            </span>
+            <span class="toggle-text">Dark Mode</span>
+          </button>
+        </div>
+        <div class="version">v1.0.0</div>
+      </footer>
+    </div>
+    
+    <script src="popup.js"></script>
+    <script>
+      // Dark mode toggle
+      const darkModeButton = document.getElementById("darkmodebutton");
+      darkModeButton.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        if (document.body.classList.contains("dark-mode")) {
+          darkModeButton.querySelector(".toggle-text").textContent = "Light Mode";
+        } else {
+          darkModeButton.querySelector(".toggle-text").textContent = "Dark Mode";
+        }
+      });
+      
+      // Compare button functionality
+      const compareButton = document.getElementById("compare-button");
+      compareButton.addEventListener("click", () => {
+        // Show loading state
+        compareButton.classList.add("loading");
+        compareButton.innerHTML = `
+          <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+          </svg>
+          Comparing...
+        `;
+        
+        // For demonstration, use detected product data or fallback sample
+        const productData = { title: "Wireless Headphones", price: "$120.00" };
+        
+        // Simulate API delay or use actual Chrome messaging
+        setTimeout(() => {
+          // Sample response data (in a real extension, this would come from your background script)
+          const response = {
+            results: [
+              { store: "Amazon", price: "$120.00", link: "#", rating: 4.5 },
+              { store: "Walmart", price: "$110.50", link: "#", rating: 4.2 },
+              { store: "Best Buy", price: "$115.99", link: "#", rating: 4.3 },
+              { store: "Target", price: "$105.99", link: "#", rating: 4.0 }
+            ]
+          };
+          
+          if (response?.results) {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "";
+            let cheapest = null;
+            
+            // Update results count
+            document.getElementById("results-count").textContent = `${response.results.length} results`;
+            
+            // Find cheapest
+            response.results.forEach((item) => {
+              const itemPriceNum = parseFloat(item.price.replace(/[$,]/g, ""));
+              if (!cheapest || itemPriceNum < parseFloat(cheapest.price.replace(/[$,]/g, ""))) {
+                cheapest = item;
+              }
+            });
+            
+            // Create result cards
+            response.results.forEach((item) => {
+              const el = document.createElement("div");
+              el.className = "result-card";
+              
+              // Add best deal badge if this is the cheapest
+              const isBestDeal = item.store === cheapest.store;
+              const dealBadge = isBestDeal ? '<span class="best-deal-badge">Best Deal</span>' : '';
+              
+              // Generate star rating
+              const stars = generateStarRating(item.rating);
+              
+              el.innerHTML = `
+                ${dealBadge}
+                <div class="store-info">
+                  <div class="store-name">${item.store}</div>
+                  <div class="rating">${stars}</div>
+                </div>
+                <div class="price ${isBestDeal ? 'best-price' : ''}">${item.price}</div>
+                <a href="${item.link}" target="_blank" class="store-link">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="link-icon">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                  </svg>
+                  Visit Store
+                </a>
+              `;
+              resultDiv.appendChild(el);
+            });
+            
+            // Calculate and display savings
+            const userPriceNum = parseFloat(productData.price.replace(/[$,]/g, ""));
+            const cheapestNum = parseFloat(cheapest.price.replace(/[$,]/g, ""));
+            const saved = (userPriceNum - cheapestNum).toFixed(2);
+            document.getElementById("savings-info").textContent = `$${saved}`;
+            document.getElementById("savings-progress").value = Math.min(saved, 100);
+            
+            // Show the result container
+            document.getElementById("result-container").style.display = "block";
+          }
+          
+          // Reset button
+          compareButton.classList.remove("loading");
+          compareButton.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="button-icon">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Compare Prices
+          `;
+        }, 1500);
+      });
+      
+      // Helper function to generate star ratings
+      function generateStarRating(rating) {
+        const fullStars = Math.floor(rating);
+        const halfStar = rating % 1 >= 0.5;
+        const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+        
+        let starsHTML = '';
+        
+        // Full stars
+        for (let i = 0; i < fullStars; i++) {
+          starsHTML += '<span class="star full">★</span>';
+        }
+        
+        // Half star
+        if (halfStar) {
+          starsHTML += '<span class="star half">★</span>';
+        }
+        
+        // Empty stars
+        for (let i = 0; i < emptyStars; i++) {
+          starsHTML += '<span class="star empty">☆</span>';
+        }
+        
+        return starsHTML;
+      }
+      
+      // Hide result container initially
+      document.getElementById("result-container").style.display = "none";
+    </script>
   </body>
 </html>
-

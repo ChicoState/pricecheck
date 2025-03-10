@@ -1,0 +1,465 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Pricechecker - Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+      <h1>Welcome, {{ request.user.username }}!</h1>
+      <nav>
+        <a href="{% url 'logout' %}" class="nav-button">Logout</a>
+      </nav>
+    </header>
+    <main>
+      <h2>Your Spending and Savings</h2>
+      <p>Total Spent: ${{ user_spent }}</p>
+      <p>Total Saved: ${{ user_saved }}</p>
+
+      <h3>Your Purchases</h3>
+      <ul>
+          {% for item in purchases %}
+          <li>
+              <strong>{{ item.name }}</strong> - Price: ${{ item.price }}
+              (Saved: ${{ item.saved }})
+          </li>
+          {% endfor %}
+      </ul>
+
+      <canvas id="myChart" width="400" height="200"></canvas>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const spent = JSON.parse('{{ user_spent|default:0|safe }}');
+        const saved = JSON.parse('{{ user_saved|default:0|safe }}');
+
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Spent', 'Saved'],
+            datasets: [{
+              label: 'Amount in $',
+              data: [spent, saved]
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      </script>
+      <p><a href="/admin/">Go to Django Admin</a> (if you are a superuser)</p>
+    </main>
+</body>
+</html> -->
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pricechecker - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <header class="dashboard-header">
+      <h1>Dashboard</h1>
+      <nav>
+        <a href="{% url 'logout' %}" class="nav-button">Logout</a>
+      </nav>
+    </header>
+    <main class="dashboard-main">
+      <div class="stats-card">
+        <h2>Your Spending & Savings</h2>
+        <p>Total Spent: ${{ user_spent }}</p>
+        <p>Total Saved: ${{ user_saved }}</p>
+      </div>
+
+      <div class="purchases-card">
+        <h2>Your Purchases</h2>
+        <ul class="purchases-list">
+          {% for item in purchases %}
+          <li>
+            <strong>{{ item.name }}</strong> – Price: ${{ item.price }} <span class="saved">(Saved: ${{ item.saved }})</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="chart-card">
+        <h2>Overview</h2>
+        <canvas id="myChart" width="400" height="200"></canvas>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const ctx = document.getElementById('myChart').getContext('2d');
+      const spent = JSON.parse('{{ user_spent|default:0|safe }}');
+      const saved = JSON.parse('{{ user_saved|default:0|safe }}');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Spent', 'Saved'],
+          datasets: [{
+            label: 'Amount in $',
+            data: [spent, saved],
+            backgroundColor: ['#007acc', '#4fc3f7']
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    </script>
+  </body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricechecker - Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --primary: #4a90e2;
+        --primary-dark: #357ae8;
+        --secondary: #4fc3f7;
+        --success: #4caf50;
+        --danger: #f44336;
+        --dark: #333;
+        --light: #f8f9fa;
+        --gray: #6c757d;
+        --light-gray: #e9ecef;
+        --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --border-radius: 8px;
+      }
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f0f2f5;
+        color: var(--dark);
+        line-height: 1.6;
+      }
+      
+      /* Navbar */
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: white;
+        padding: 1rem 2rem;
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      
+      .navbar-brand {
+        display: flex;
+        align-items: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+      
+      .navbar-brand svg {
+        margin-right: 0.5rem;
+      }
+      
+      .navbar-nav {
+        display: flex;
+        align-items: center;
+      }
+      
+      .nav-button {
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        text-decoration: none;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+      
+      .nav-button:hover {
+        background-color: var(--primary-dark);
+      }
+      
+      /* Dashboard Layout */
+      .dashboard-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      
+      .dashboard-header {
+        margin-bottom: 2rem;
+      }
+      
+      .dashboard-header h1 {
+        font-size: 2rem;
+        color: var(--dark);
+      }
+      
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      
+      /* Cards */
+      .card {
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        transition: transform 0.2s;
+      }
+      
+      .card:hover {
+        transform: translateY(-5px);
+      }
+      
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--light-gray);
+      }
+      
+      .card-header h2 {
+        font-size: 1.25rem;
+        color: var(--dark);
+      }
+      
+      /* Stats Card */
+      .stats-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      
+      .stat-item {
+        flex: 1;
+        text-align: center;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+      }
+      
+      .stat-item.spent {
+        background-color: rgba(74, 144, 226, 0.1);
+      }
+      
+      .stat-item.saved {
+        background-color: rgba(76, 175, 80, 0.1);
+      }
+      
+      .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      
+      .stat-label {
+        font-size: 0.875rem;
+        color: var(--gray);
+      }
+      
+      .stat-item.spent .stat-value {
+        color: var(--primary);
+      }
+      
+      .stat-item.saved .stat-value {
+        color: var(--success);
+      }
+      
+      /* Purchases Card */
+      .purchases-list {
+        list-style: none;
+        margin-top: 1rem;
+      }
+      
+      .purchase-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--light-gray);
+      }
+      
+      .purchase-item:last-child {
+        border-bottom: none;
+      }
+      
+      .purchase-name {
+        font-weight: 500;
+      }
+      
+      .purchase-price {
+        color: var(--dark);
+      }
+      
+      .purchase-saved {
+        color: var(--success);
+        font-weight: 500;
+      }
+      
+      /* Chart Card */
+      .chart-container {
+        width: 100%;
+        height: 300px;
+      }
+      
+      /* Responsive */
+      @media (max-width: 768px) {
+        .dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+        
+        .stats-container {
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-brand">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+        </svg>
+        Pricechecker
+      </div>
+      <div class="navbar-nav">
+        <a href="{% url 'logout' %}" class="nav-button">Logout</a>
+      </div>
+    </nav>
+    
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <h1>Welcome to Your Dashboard</h1>
+      </div>
+      
+      <div class="dashboard-grid">
+        <!-- Stats Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Your Spending & Savings</h2>
+          </div>
+          <div class="stats-container">
+            <div class="stat-item spent">
+              <div class="stat-value">${{ user_spent }}</div>
+              <div class="stat-label">Total Spent</div>
+            </div>
+            <div class="stat-item saved">
+              <div class="stat-value">${{ user_saved }}</div>
+              <div class="stat-label">Total Saved</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Chart Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2>Overview</h2>
+          </div>
+          <div class="chart-container">
+            <canvas id="myChart"></canvas>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Purchases Card -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Your Purchases</h2>
+        </div>
+        <ul class="purchases-list">
+          {% for item in purchases %}
+          <li class="purchase-item">
+            <span class="purchase-name">{{ item.name }}</span>
+            <div>
+              <span class="purchase-price">${{ item.price }}</span>
+              <span class="purchase-saved">(Saved: ${{ item.saved }})</span>
+            </div>
+          </li>
+          {% endfor %}
+          {% if not purchases %}
+          <li class="purchase-item">
+            <span>No purchases yet. Start tracking prices to save money!</span>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const spent = JSON.parse('{{ user_spent|default:0|safe }}');
+        const saved = JSON.parse('{{ user_saved|default:0|safe }}');
+        
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Spent', 'Saved'],
+            datasets: [{
+              label: 'Amount in $',
+              data: [spent, saved],
+              backgroundColor: ['#4a90e2', '#4caf50'],
+              borderColor: ['#357ae8', '#3d8b40'],
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              }
+            },
+            scales: {
+              y: { 
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                }
+              },
+              x: {
+                grid: {
+                  display: false
+                }
+              }
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
