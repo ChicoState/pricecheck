@@ -1,3 +1,4 @@
+
 * {
   display: none !important;
 }
@@ -20,18 +21,6 @@ article {
 }
 
 body {
-        font-family: Arial, sans-serif;
-        padding: 10px;
-      }
-
-.result{
-	border: 1px solid #ccc;
-        padding: 10px;
-        margin-top: 10px;
-        border-radius: 5px;
-      }
-
-.loading {
-	font-style: italic;
+  font-family: Arial, sans-serif;
+  padding: 10px;
 }
-

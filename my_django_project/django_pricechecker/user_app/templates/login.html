@@ -1,0 +1,51 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Pricechecker - Login</title>
+</head>
+<body>
+    <h1>Login to Pricechecker</h1>
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+    <form method="POST">
+      {% csrf_token %}
+      <label>Username</label>
+      <input type="text" name="username" required>
+      <br>
+      <label>Password</label>
+      <input type="password" name="password" required>
+      <br><br>
+      <button type="submit">Login</button>
+    </form>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Pricechecker - Login</title>
+</head>
+<body>
+    <h1>Login to Pricechecker</h1>
+
+    {% if error %}
+      <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      <label>Username:</label>
+      <input type="text" name="username" required />
+
+      <br><br>
+
+      <label>Password:</label>
+      <input type="password" name="password" required />
+
+      <br><br>
+
+      <button type="submit">Login</button>
+    </form>
+</body>
+</html>

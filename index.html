@@ -1,20 +1,82 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" href="style.css">
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Pricechecker</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h1 class="title">Pricechecker</h1>
 
-    <button class="button">Compare Prices</button>
-
+    <p>Welcome to Pricechecker! Click the button below to compare prices.</p>
+    <button class="button" id="compare-button">Compare Prices</button>
+    
     <div id="result"></div>
 
-    <button id = "darkmodebutton" class = "toggle-button"> Dark Mode </button>
+    <button id="darkmodebutton" class="toggle-button">Dark Mode</button>
+
+    <!-- Visualization / Meter: A simple example -->
+    <div id="savings-meter">
+      <h2>Your Savings</h2>
+      <p id="savings-info">Total Saved: $0.00</p>
+      <progress id="savings-progress" value="0" max="100"></progress>
+    </div>
 
     <script src="popup.js"></script>
+    <script>
+      const compareButton = document.getElementById("compare-button");
+      compareButton.addEventListener("click", () => {
+        // For demonstration, let's pretend we have some product data
+        const productData = { title: "Sample Product", price: "$120.00" };
+        
+        // Send a message to background.js for mock competitor prices
+        chrome.runtime.sendMessage(
+          { type: "FETCH_PRICES", data: productData },
+          (response) => {
+            if (response?.results) {
+              const resultDiv = document.getElementById("result");
+              resultDiv.innerHTML = "";
+              
+              // Determine the cheapest
+              let cheapest = null;
+              response.results.forEach((item) => {
+                const itemPriceNum = parseFloat(item.price.replace(/[$,]/g, ""));
+                if (!cheapest || itemPriceNum < parseFloat(cheapest.price.replace(/[$,]/g, ""))) {
+                  cheapest = item;
+                }
+              });
+
+              // Display each store’s price
+              response.results.forEach((item) => {
+                const el = document.createElement("div");
+                el.className = "result";
+                el.innerHTML = `
+                  <strong>${item.store}</strong><br>
+                  Price: ${item.price}<br>
+                  <a href="${item.link}" target="_blank">Link</a>
+                `;
+                resultDiv.appendChild(el);
+              });
+
+              // Highlight cheapest
+              if (cheapest) {
+                const cheapestEl = document.createElement("p");
+                cheapestEl.style.fontWeight = "bold";
+                cheapestEl.innerHTML = `Cheapest Store: ${cheapest.store} at ${cheapest.price}`;
+                resultDiv.appendChild(cheapestEl);
+              }
+
+              // Let's say user saved $15.50 if the difference between sample product price and cheapest
+              const userPriceNum = parseFloat(productData.price.replace(/[$,]/g, ""));
+              const cheapestNum  = parseFloat(cheapest.price.replace(/[$,]/g, ""));
+              const saved        = (userPriceNum - cheapestNum).toFixed(2);
+
+              document.getElementById("savings-info").textContent = `Total Saved: $${saved}`;
+              document.getElementById("savings-progress").value = Math.min(saved, 100); // just a fun example
+            }
+          }
+        );
+      });
+    </script>
   </body>
 </html>
-

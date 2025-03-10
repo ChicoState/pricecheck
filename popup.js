@@ -1,71 +1,41 @@
-// console.log("This is a popup!");
+// // popup.js
+// document.addEventListener("DOMContentLoaded", function() {
+//   const darkModeButton = document.getElementById("darkmodebutton");
 
-// document.getElementById("checkPrice").addEventListener("click", () => {
-//   console.log("Price check initiated.");
+//   // Load saved dark mode state
+//   chrome.storage.sync.get("darkMode", function(data) {
+//     if (data.darkMode) {
+//       document.body.classList.add("dark-mode");
+//     }
+//   });
+
+//   // Toggle dark mode
+//   darkModeButton?.addEventListener("click", function() {
+//     if (document.body.classList.contains("dark-mode")) {
+//       document.body.classList.remove("dark-mode");
+//       chrome.storage.sync.set({ darkMode: false });
+//     } else {
+//       document.body.classList.add("dark-mode");
+//       chrome.storage.sync.set({ darkMode: true });
+//     }
+//   });
 // });
-
-//console.log("Popup loaded.");
-
-/*document.getElementById("button").addEventListener("click", async () => {
-  document.getElementById("result").innerHTML = '<p class="loading">Checking prices...</p>';
-  
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab.id) throw new Error("No active tab found.");
-    
-    await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ['content-price.js']
-    });
-    
-    chrome.runtime.onMessage.addListener(function handler(message, sender, sendResponse) {
-      if (message.type === "PRODUCT_DATA") {
-        console.log("Product data received: ", message.data);
-        chrome.runtime.onMessage.removeListener(handler);
-        chrome.runtime.sendMessage({ type: "FETCH_PRICES", data: message.data }, (response) => {
-          document.getElementById("result").innerHTML = formatResult(response);
-        });
-      }
-    });
-  } catch (error) {
-    console.error("Error in price check: ", error);
-    document.getElementById("result").textContent = "Error checking price. See console for details.";
-  }
-});
-
-function formatResult(data) {
-  if (!data || !data.results || data.results.length === 0) {
-    return "<p>No price data found.</p>";
-  }
-  let html = "<h2>Price Comparison</h2>";
-  data.results.forEach(item => {
-    html += `<div class="result">
-      <strong>${item.store}</strong><br>
-      Price: ${item.price}<br>
-      <a href="${item.link}" target="_blank">View Product</a>
-    </div>`;
-  });
-  return html;
-}*/
-
-
 document.addEventListener("DOMContentLoaded", function() {
   const darkModeButton = document.getElementById("darkmodebutton");
 
+  // Load saved dark mode preference
   chrome.storage.sync.get("darkMode", function(data) {
     if (data.darkMode) {
       document.body.classList.add("dark-mode");
     }
   });
 
-  
-  darkModeButton.addEventListener("click", function() {
+  // Toggle dark mode on click
+  darkModeButton?.addEventListener("click", function() {
     if (document.body.classList.contains("dark-mode")) {
       document.body.classList.remove("dark-mode");
       chrome.storage.sync.set({ darkMode: false });
-    } 
-    
-    else {
+    } else {
       document.body.classList.add("dark-mode");
       chrome.storage.sync.set({ darkMode: true });
     }

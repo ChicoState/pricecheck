@@ -1,29 +1,30 @@
 {
-    "name": "Pricechecker",
-    "description": "This extension shows the best price among all the online webstores",
-    "version": "1.0",
-    "manifest_version": 3,
-    "permissions": ["activeTab", "scripting", "storage"],
-    "host_permissions": [
-      "https://api.example.com/*",
-      "https://*.amazon.com/*",
-      "https://*.walmart.com/*"
-    ],
-    "action": {
-      "default_popup": "index.html",
-      "default_icon": "pricechecker.png"
-    },
-    "background": {
-      "service_worker": "background.js",
-      "type": "module"
-    },
-    "commands": {
-      "_execute_action": {
-        "suggested_key": {
-          "default": "Ctrl+B",
-          "mac": "Command+B"
-        }
+  "name": "Pricechecker",
+  "description": "This extension shows the best price among all the online webstores",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "https://api.example.com/*",
+    "https://*.amazon.com/*",
+    "https://*.walmart.com/*",
+    "https://*.bestbuy.com/*",
+    "https://*.ebay.com/*"
+  ],
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "pricechecker.png"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+B",
+        "mac": "Command+B"
       }
     }
   }
-  
+}

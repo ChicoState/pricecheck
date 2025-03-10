@@ -1,0 +1,80 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Pricechecker - Dashboard</title>
+</head>
+<body>
+    <h1>Welcome {{ request.user.username }}</h1>
+    
+    <h3>Your Spending and Savings</h3>
+    <p>Total Spent: ${{ user_spent }}</p>
+    <p>Total Saved: ${{ user_saved }}</p>
+    
+    <h3>Your Purchases</h3>
+    <ul>
+        {% for item in purchases %}
+        <li>
+            <strong>{{ item.name }}</strong> - Price: ${{ item.price }} 
+            (You saved ${{ item.saved }})
+        </li>
+        {% endfor %}
+    </ul>
+
+    <p><a href="/admin/">Go to Django Admin</a></p>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Pricechecker - Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ request.user.username }}!</h1>
+
+    <h2>Your Spending and Savings</h2>
+    <p>Total Spent: ${{ user_spent }}</p>
+    <p>Total Saved: ${{ user_saved }}</p>
+
+    <h3>Your Purchases</h3>
+    <ul>
+        {% for item in purchases %}
+        <li>
+            <strong>{{ item.name }}</strong> - Price: ${{ item.price }}
+            (You saved ${{ item.saved }})
+        </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Chart.js for a simple bar chart of "Spent" vs "Saved" -->
+    <canvas id="myChart" width="400" height="200"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const ctx = document.getElementById('myChart').getContext('2d');
+      const spent = JSON.parse('{{ user_spent|default:0|safe }}');
+      const saved = JSON.parse('{{ user_saved|default:0|safe }}');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Spent', 'Saved'],
+          datasets: [{
+            label: 'Dollars',
+            data: [spent, saved],
+            // No specific colors if you prefer a default palette
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    </script>
+
+    <p><a href="/admin/">Go to Django Admin</a> (if logged in as a superuser)</p>
+</body>
+</html>

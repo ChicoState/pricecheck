@@ -6,61 +6,57 @@ body {
   transition: background-color 1.5s, color 0.3s;
 }
 
-
 body.dark-mode {
   background-color: #1e1e1e;
   color: white;
 }
 
-.result {
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 5px;
-}
-.loading {
-  font-style: italic;
+.title {
+  color: lightblue;
+  text-align: center;
 }
 
-.title{
-    color:lightblue;
-}
-/* From Uiverse.io by satyamchaudharydev */ 
-/* inspired form gumroad website */
+/* Buttons */
 .button {
-    --bg: black;
-    --hover-text: white;
-    color:white;
-    background-color: black;
-    cursor: pointer;
-    border: 1px solid var(--bg);
-    border-radius: 4px;
-    padding: 0.8em 2em;
-    background: var(--bg);
-    transition: 0.2s;
+  --bg: black;
+  --hover-text: white;
+  color: white;
+  background-color: black;
+  cursor: pointer;
+  border: 1px solid var(--bg);
+  border-radius: 4px;
+  padding: 0.8em 2em;
+  background: var(--bg);
+  transition: 0.2s;
+  margin-bottom: 10px;
+  width: 100%;
+  display: inline-block;
+  text-align: center;
 }
 
 .button:hover {
-    color: var(--hover-text);
-    transform: translate(-0.25rem, -0.25rem);
-    background: lightblue;
-    box-shadow: 0.25rem 0.25rem var(--bg);
+  color: var(--hover-text);
+  transform: translate(-0.25rem, -0.25rem);
+  background: lightblue;
+  box-shadow: 0.25rem 0.25rem var(--bg);
 }
-  
+
 .button:active {
-    transform: translate(0);
-    box-shadow: none;
+  transform: translate(0);
+  box-shadow: none;
 }
 
 .toggle-button {
   background-color: black;
-  color:white;
+  color: white;
   border: none;
   padding: 15px 15px;
   cursor: pointer;
   font-size: 14px;
   border-radius: 5px;
   transition: background-color 0.3s, color 0.3s;
+  margin-bottom: 10px;
+  width: 100%;
 }
 
 .dark-mode .toggle-button {
@@ -68,27 +64,34 @@ body.dark-mode {
   color: black;
 }
 
-.dark-mode {
-  background-color: #1e1e1e;
-  color: white;
+/* Results */
+.result {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 5px;
 }
 
-
-body {
-  transition: background-color 0.3s, color 0.3s;
+.loading {
+  font-style: italic;
 }
 
-.button, .toggle-button {
-  margin-bottom: 10px; 
-  display: block; 
-  width: 100%; 
-}
-
-.dark-mode .title{
+.dark-mode .title {
   color: rgb(48, 48, 232);
 }
 
-.dark-mode .button{
+.dark-mode .button {
   background-color: rgb(48, 48, 232);
   color: white;
+}
+
+/* Savings meter */
+#savings-meter {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#savings-info {
+  font-size: 1.1em;
+  margin-bottom: 10px;
 }
