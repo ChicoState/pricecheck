@@ -1,6 +1,6 @@
 # Pricechecker
 
-**Pricechecker** is a Chrome extension + (optional) Django project that helps users compare prices across popular online stores: Amazon, eBay, Best Buy, Walmart, and more (using **mock data** for now). It features:
+**Pricechecker** is a Chrome extension +  Django project that helps users compare prices across popular online stores: Amazon, eBay, Best Buy, Walmart, and more (using **mock data** for now). It features:
 
 1. **Manual/Automatic Price Checks**  
 2. **Dark Mode** and **Light Mode**  
