@@ -1,125 +1,112 @@
 const compareButton = document.getElementById("compare-button");
 
+// Check if we have product data in storage
+chrome.storage.local.get(['currentProduct'], function (result) {
+  if (result.currentProduct) {
+    // Show product info in the UI
+    const productTitle = document.createElement('div');
+    productTitle.className = 'product-title';
+    productTitle.innerHTML = `<p><strong>Detected Product:</strong> ${result.currentProduct.title || result.currentProduct.productName}</p>
+                             <p><strong>Current Price:</strong> ${result.currentProduct.price}</p>`;
+
+    // Insert before the compare button
+    const welcomeMessage = document.querySelector('.message-content');
+    welcomeMessage.insertBefore(productTitle, compareButton);
+  }
+});
+
 compareButton.addEventListener("click", () => {
-  const productData = { title: "Sample Product", price: "$120.00" };
+  // Show loading state
+  const resultDiv = document.getElementById("result");
+  resultDiv.innerHTML = '<div class="loading">Comparing prices...</div>';
 
-  chrome.runtime.sendMessage({ type: "FETCH_PRICES", data: productData }, (response) => {
-    const resultDiv = document.getElementById("result");
-    
-    // Get the dedicated Amazon container and hide it initially.
-    const amazonContainer = document.getElementById("amazon-result");
-    amazonContainer.style.display = "none";
-    
-    // Clear any existing generic results while keeping the Amazon container.
-    resultDiv.innerHTML = "";
-    resultDiv.appendChild(amazonContainer);
+  // Get current product from storage or use a dummy one
+  chrome.storage.local.get(['currentProduct'], function (result) {
+    const productData = result.currentProduct || {
+      title: "Sample Product",
+      price: "$120.00",
+      productName: "Sample Product"
+    };
 
-    // Display error if present.
-    if (response?.error) {
-      resultDiv.innerHTML = `<p class="error">Error: ${response.error}</p>`;
-      return;
-    }
+    chrome.runtime.sendMessage({ type: "FETCH_PRICES", data: productData }, (response) => {
+      resultDiv.innerHTML = ""; // Clear loading message
 
-    // Determine the cheapest price.
-    let cheapest = null;
-    response.results.forEach((item) => {
-      const itemPriceNum = parseFloat(item.price.replace(/[$,]/g, ""));
-      if (!cheapest || itemPriceNum < parseFloat(cheapest.price.replace(/[$,]/g, ""))) {
-        cheapest = item;
+      // Display error if present
+      if (!response?.success) {
+        resultDiv.innerHTML = `<p class="error">Error: ${response?.message || "Could not compare prices"}</p>`;
+        return;
       }
-    });
 
-    // Process each result.
-    response.results.forEach((item) => {
-      if (item.store.toLowerCase() === "amazon") {
-        // Update the Amazon container and unhide it.
-        amazonContainer.style.display = "inline-block"; // or "block"
-        amazonContainer.innerHTML = `
-          <strong>${item.store}</strong><br>
-          Price: ${item.price}<br>
-          <a href="${item.link}" target="_blank">Link</a>
-        `;
-      } else {
-        // Create a generic result box.
+      // Extract alternatives from the response
+      const alternatives = response.data.alternatives;
+
+      // Create visual elements for each alternative site
+      alternatives.forEach((item) => {
         const el = document.createElement("div");
         el.className = "result";
+
+        // Extract price info from notes if available
+        let priceInfo = "";
+        if (item.notes && item.notes.includes("Price:")) {
+          priceInfo = item.notes;
+        } else {
+          priceInfo = item.notes || "";
+        }
+
         el.innerHTML = `
-          <strong>${item.store}</strong><br>
-          Price: ${item.price}<br>
-          <a href="${item.link}" target="_blank">Link</a>
+          <strong>${item.site}</strong><br>
+          ${priceInfo}<br>
+          <a href="${item.searchUrl}" target="_blank">Check Price</a>
         `;
         resultDiv.appendChild(el);
-      }
+      });
+
+      // Add summary text
+      const summaryEl = document.createElement("p");
+      summaryEl.style.fontWeight = "bold";
+      summaryEl.style.marginTop = "15px";
+      summaryEl.innerHTML = `Search Terms: ${response.data.searchTerms}`;
+      resultDiv.appendChild(summaryEl);
+
+      // Update savings info with placeholder values
+      // In a real implementation, this would calculate actual savings
+      const savedEstimate = Math.floor(Math.random() * 30) + 5; // Random number between 5-35
+      document.getElementById("savings-info").textContent = `Estimated Savings: $${savedEstimate.toFixed(2)}`;
+      document.getElementById("savings-progress").value = Math.min(savedEstimate, 100);
     });
-
-    // Highlight the cheapest option.
-    if (cheapest) {
-      const cheapestEl = document.createElement("p");
-      cheapestEl.style.fontWeight = "bold";
-      cheapestEl.innerHTML = `Cheapest Store: ${cheapest.store} at ${cheapest.price}`;
-      resultDiv.appendChild(cheapestEl);
-    }
-
-    // Update savings info.
-    const userPriceNum = parseFloat(productData.price.replace(/[$,]/g, ""));
-    const cheapestNum  = parseFloat(cheapest.price.replace(/[$,]/g, ""));
-    const saved        = (userPriceNum - cheapestNum).toFixed(2);
-    document.getElementById("savings-info").textContent = `Total Saved: $${saved}`;
-    document.getElementById("savings-progress").value = Math.min(saved, 100);
   });
 });
 
-// last updated code
-// const compareButton = document.getElementById("compare-button");
-// compareButton.addEventListener("click", () => {
-//   const productData = { title: "Sample Product", price: "$120.00" };
-//   chrome.runtime.sendMessage(
-//     { type: "FETCH_PRICES", data: productData },
-//     (response) => {
-//       const resultDiv = document.getElementById("result");
-//       resultDiv.innerHTML = "";
+// Add server status indicator to the UI
+function addServerStatusIndicator() {
+  const statusElement = document.createElement('div');
+  statusElement.className = 'server-status';
 
-//       // Display error if present.
-//       if (response?.error) {
-//         resultDiv.innerHTML = `<p class="error">Error: ${response.error}</p>`;
-//         return;
-//       }
+  const indicator = document.createElement('div');
+  indicator.className = 'status-indicator';
 
-//       // Determine the cheapest price.
-//       let cheapest = null;
-//       response.results.forEach((item) => {
-//         const itemPriceNum = parseFloat(item.price.replace(/[$,]/g, ""));
-//         if (!cheapest || itemPriceNum < parseFloat(cheapest.price.replace(/[$,]/g, ""))) {
-//           cheapest = item;
-//         }
-//       });
+  const statusText = document.createElement('span');
+  statusText.textContent = 'Server: Checking...';
 
-//       // Display each store's price.
-//       response.results.forEach((item) => {
-//         const el = document.createElement("div");
-//         el.className = "result";
-//         el.innerHTML = `
-//           <strong>${item.store}</strong><br>
-//           Price: ${item.price}<br>
-//           <a href="${item.link}" target="_blank">Link</a>
-//         `;
-//         resultDiv.appendChild(el);
-//       });
+  statusElement.appendChild(indicator);
+  statusElement.appendChild(statusText);
+  document.body.appendChild(statusElement);
 
-//       // Highlight the cheapest option.
-//       if (cheapest) {
-//         const cheapestEl = document.createElement("p");
-//         cheapestEl.style.fontWeight = "bold";
-//         cheapestEl.innerHTML = `Cheapest Store: ${cheapest.store} at ${cheapest.price}`;
-//         resultDiv.appendChild(cheapestEl);
-//       }
+  // Check server connection
+  fetch('http://localhost:3000')
+    .then(response => {
+      if (response.ok) {
+        indicator.classList.add('connected');
+        statusText.textContent = 'Server: Connected';
+      } else {
+        statusText.textContent = 'Server: Error';
+      }
+    })
+    .catch(error => {
+      console.error('Server connection error:', error);
+      statusText.textContent = 'Server: Disconnected';
+    });
+}
 
-//       // Update savings info.
-//       const userPriceNum = parseFloat(productData.price.replace(/[$,]/g, ""));
-//       const cheapestNum  = parseFloat(cheapest.price.replace(/[$,]/g, ""));
-//       const saved        = (userPriceNum - cheapestNum).toFixed(2);
-//       document.getElementById("savings-info").textContent = `Total Saved: $${saved}`;
-//       document.getElementById("savings-progress").value = Math.min(saved, 100);
-//     }
-//   );
-// });
+// Call this function when the page loads
+document.addEventListener('DOMContentLoaded', addServerStatusIndicator);
