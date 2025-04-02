@@ -1,46 +1,146 @@
-// 
+// Proxy server endpoint
+const PROXY_SERVER_URL = 'http://localhost:3000/api/analyze-product';
+
 console.log("Service worker running");
 
 // On install, initialize a badge or do other setup
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.action.setBadgeText({ text: "OFF" });
   console.log("Extension installed!");
+  chrome.action.setBadgeText({ text: "OFF" });
 });
 
-// Toggle the badge text on certain URLs
-chrome.action.onClicked.addListener(async (tab) => {
-  const extensionsUrl = 'https://developer.chrome.com/docs/extensions';
-  const webstoreUrl   = 'https://developer.chrome.com/docs/webstore';
-  let nextState       = "OFF";
+// Listen for messages from content script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("Background script received message:", request.type, request);
 
-  if (tab.url.startsWith(extensionsUrl) || tab.url.startsWith(webstoreUrl)) {
-    const prevState = await chrome.action.getBadgeText({ tabId: tab.id });
-    nextState       = (prevState === 'ON') ? 'OFF' : 'ON';
-    await chrome.action.setBadgeText({ tabId: tab.id, text: nextState });
+  if (request.type === "PRODUCT_DATA") {
+    // Store product data when received from content script
+    console.log("Storing product data:", request.data);
+    chrome.storage.local.set({ currentProduct: request.data }, () => {
+      console.log("Product data stored in local storage");
+      if (chrome.runtime.lastError) {
+        console.error("Error storing data:", chrome.runtime.lastError);
+      }
+    });
+
+    // Set badge
+    if (sender && sender.tab && sender.tab.id) {
+      chrome.action.setBadgeText({
+        text: "✓",
+        tabId: sender.tab.id
+      });
+    }
+
+    // Send a response to confirm receipt
+    sendResponse({ success: true, message: "Product data received" });
   }
-});
-
-// Listen for messages requesting price data
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "FETCH_PRICES") {
-    const product = message.data;
+  else if (request.type === "FETCH_PRICES") {
+    const product = request.data;
     console.log("Fetching competitor prices for product:", product);
 
-    // ---- Mock Data ----
+    // Create search terms from product title
+    const searchTerms = product.title || product.productName || "product";
+    console.log("Using search terms:", searchTerms);
+
+    // Generate proper search URLs
     const mockData = {
-      results: [
-        { store: "Amazon",    price: product.price || "$100.00", link: "https://amazon.com/dp/example" },
-        { store: "eBay",      price: "$94.50",                    link: "https://ebay.com/itm/example" },
-        { store: "Walmart",   price: "$97.99",                    link: "https://walmart.com/ip/example" },
-        { store: "Best Buy",  price: "$99.50",                    link: "https://bestbuy.com/site/example" }
-      ]
+      success: true,
+      data: {
+        searchTerms: searchTerms,
+        modelNumber: extractModelNumber(searchTerms),
+        alternatives: [
+          {
+            site: "Amazon",
+            searchUrl: `https://www.amazon.com/s?k=${encodeURIComponent(searchTerms)}`,
+            notes: `Current Price: ${product.price || "$100.00"}`
+          },
+          {
+            site: "eBay",
+            searchUrl: `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(searchTerms)}`,
+            notes: "Often has better prices on used items"
+          },
+          {
+            site: "Walmart",
+            searchUrl: `https://www.walmart.com/search?q=${encodeURIComponent(searchTerms)}`,
+            notes: "Check for price match guarantees"
+          },
+          {
+            site: "Best Buy",
+            searchUrl: `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(searchTerms)}`,
+            notes: "Look for special promotions and bundles"
+          },
+          {
+            site: "Target",
+            searchUrl: `https://www.target.com/s?searchTerm=${encodeURIComponent(searchTerms)}`,
+            notes: "Check for RedCard discounts"
+          }
+        ]
+      }
     };
 
-    // Simulate an API delay
-    setTimeout(() => {
+    // Try to use the proxy server first
+    try {
+      fetch(PROXY_SERVER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          productInfo: {
+            productName: product.title || product.productName || "Unknown Product",
+            price: product.price || "Unknown price",
+            domain: product.domain || window.location?.hostname || "current site"
+          }
+        })
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Received data from server:", data);
+          sendResponse(data);
+        })
+        .catch(error => {
+          console.error("Error fetching from server:", error);
+          // Fall back to mock data
+          console.log("Using mock data instead:", mockData);
+          sendResponse(mockData);
+        });
+    } catch (error) {
+      console.error("Exception when calling server:", error);
+      // Fall back to mock data
+      console.log("Using mock data instead due to exception:", mockData);
       sendResponse(mockData);
-    }, 1000);
+    }
 
     return true; // indicates async response
   }
+
+  return true; // Always return true for async responses
 });
+
+// Helper function to extract model numbers
+function extractModelNumber(productName) {
+  if (!productName) return "Unknown";
+
+  // Common model number patterns
+  const patterns = [
+    /\b[A-Z0-9]{1,2}[-_]?[A-Z0-9]{2,5}\b/i,    // G502, XPS-15, etc
+    /\b(model|part)[-_:\s]?([A-Z0-9]{4,10})\b/i,  // Model: ABC123
+    /\b[A-Z][0-9]{3,5}\b/i,                   // S2000, X300, etc
+    /\b([A-Z]{1,4}[0-9]{1,5}[-][A-Z0-9]{1,5})\b/i // MT-2000X, GT710-2GD5
+  ];
+
+  for (const pattern of patterns) {
+    const match = productName.match(pattern);
+    if (match) {
+      // Return either the 2nd capture group or the full match
+      return match[2] || match[0];
+    }
+  }
+
+  return "Unknown";
+}
