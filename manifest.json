@@ -1,15 +1,20 @@
 {
   "name": "Pricechecker",
-  "description": "Compare prices across Amazon, eBay, BestBuy, Walmart, etc. (mock data).",
-  "version": "1.1",
+  "description": "Compare prices across multiple retailers using AI-powered analysis.",
+  "version": "1.2",
   "manifest_version": 3,
-  "permissions": ["activeTab", "scripting", "storage"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
   "host_permissions": [
     "https://api.example.com/*",
     "https://*.amazon.com/*",
     "https://*.walmart.com/*",
     "https://*.bestbuy.com/*",
-    "https://*.ebay.com/*"
+    "https://*.ebay.com/*",
+    "http://localhost/*"
   ],
   "action": {
     "default_popup": "index.html",
@@ -19,6 +24,19 @@
     "service_worker": "background.js",
     "type": "module"
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.amazon.com/*",
+        "https://*.walmart.com/*",
+        "https://*.bestbuy.com/*",
+        "https://*.ebay.com/*"
+      ],
+      "js": [
+        "content-price.js"
+      ]
+    }
+  ],
   "commands": {
     "_execute_action": {
       "suggested_key": {
