@@ -40,3 +40,6 @@ settings.py
 # Docker
 docker-compose.yml
 Dockerfile
+
+# pricecheck-proxy
+node_modules/
