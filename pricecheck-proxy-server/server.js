@@ -25,6 +25,42 @@ app.get('/', (req, res) => {
     res.send('PriceCheck API Proxy Server is running');
 });
 
+function constructProductAnalysisPrompt(productInfo) {
+    // Create safe values for the prompt
+    const productNameSafe = productInfo.productName || 'Unknown Product';
+    const priceSafe = productInfo.price || 'Unknown Price';
+    const domainSafe = productInfo.domain || 'Unknown Website';
+
+    // Construct and return the prompt
+    return `
+      I'm looking at a product: "${productNameSafe}" with a price of ${priceSafe} on ${domainSafe}.
+
+        Please perform the following steps:
+        1. Identify 3–6 key search terms for this product.
+        2. Suggest 3–5 alternative websites where I might find it cheaper.
+        3. For each website, provide:
+        - "site": website name
+        - "searchUrl": a full URL to search for this product
+        - "notes": any helpful pricing info or tips
+
+
+      Format your response as JSON with this structure:
+      {
+        "searchTerms": "key search terms",
+        "alternatives": [
+          {
+            "site": "website name",
+            "searchUrl": "full URL to search for this product",
+            "notes": "any price info or tips"
+          },
+          ...more alternatives...
+        ]
+      }
+
+      IMPORTANT: Respond with the JSON only, no other text or explanation.
+    `;
+}
+
 // Proxy endpoint for Claude API
 app.post('/api/analyze-product', async (req, res) => {
     try {
@@ -64,38 +100,8 @@ app.post('/api/analyze-product', async (req, res) => {
 
         console.log('Received product info:', JSON.stringify(productInfo, null, 2));
 
-        // Create a more resilient product name for the prompt
-        const productNameSafe = productInfo.productName || 'Unknown Product';
-        const priceSafe = productInfo.price || 'Unknown Price';
-        const domainSafe = productInfo.domain || 'Unknown Website';
-
-        // Construct prompt for Claude using safe values
-        const prompt = `
-      I'm looking at a product: "${productNameSafe}" with a price of ${priceSafe} on ${domainSafe}.
-      
-      Please:
-      1. Identify key search terms for this product
-      2. Suggest 3-5 alternative websites where I might find this cheaper
-      3. For each alternative, provide:
-         - The website name
-         - A search URL I can use to find this product there
-         - Any known price comparison information if available
-      
-      Format your response as JSON with this structure:
-      {
-        "searchTerms": "key search terms",
-        "alternatives": [
-          {
-            "site": "website name",
-            "searchUrl": "full URL to search for this product",
-            "notes": "any price info or tips"
-          },
-          ...more alternatives...
-        ]
-      }
-      
-      IMPORTANT: Respond with the JSON only, no other text or explanation.
-    `;
+        // Get the prompt from the dedicated function
+        const prompt = constructProductAnalysisPrompt(productInfo);
 
         let responseData;
 
@@ -146,7 +152,7 @@ app.post('/api/analyze-product', async (req, res) => {
             }
 
             // Create a fallback response when the API call fails
-            const searchTerms = productNameSafe.split(' ').slice(0, 3).join(' ');
+            const searchTerms = productInfo.productName.split(' ').slice(0, 3).join(' ');
             responseData = {
                 searchTerms: searchTerms,
                 alternatives: [
