@@ -657,10 +657,7 @@ function displayResults(response) {
 
       ${priceInfo}<br><br>
       <a href="${item.searchUrl}" target="_blank" class="button-link">Check Price</a>
-
-      ${priceInfo}<br>
-      <a href="${item.searchUrl}" target="_blank">Check Price</a>
-
+      
     `;
     resultDiv.appendChild(el);
   });
