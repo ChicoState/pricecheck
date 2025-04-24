@@ -37,10 +37,10 @@ async function scrapeAmazon(searchUrl, keyword,retries = 3) {
                 const price = priceText ? parseFloat(priceText.replace('$', '').replace(',', '')) : null;
                 
                 if (title && title.includes(keyword)) {
-                console.log(`Amazon Product #${i + 1} ---`);
-                console.log(`Title: ${title}`);
-                console.log(`URL: ${fullUrl}`);
-                console.log(`Price: ${priceText}\n`);
+               // console.log(`Amazon Product #${i + 1} ---`);
+                //console.log(`Title: ${title}`);
+                //console.log(`URL: ${fullUrl}`);
+                //console.log(`Price: ${priceText}\n`);
 
                 if (title && fullUrl && price !== null && price < lowestPrice) {
                     lowestPriceProduct = {
@@ -112,10 +112,10 @@ async function scrapeEbay(searchUrl,retries = 3) {
                 const priceText = priceElement.text().trim();
                 const price = priceText ? parseFloat(priceText.replace('$', '').replace(',', '')) : null;
                 
-                console.log(`Ebay Product #${i + 1} ---`);
-                console.log(`Title: ${title}`);
-                console.log(`URL: ${fullUrl}`);
-                console.log(`Price: ${priceText}\n`);
+               // console.log(`Ebay Product #${i + 1} ---`);
+                //console.log(`Title: ${title}`);
+                //console.log(`URL: ${fullUrl}`);
+                //console.log(`Price: ${priceText}\n`);
 
                 if(title!== 'Shop on eBay'){
                 if (title && fullUrl && price !== null && price < lowestPrice) {
@@ -178,9 +178,9 @@ async function scrapeEbay(searchUrl,retries = 3) {
 
         for (const product of products) {
             
-            console.log(`BestBuy Title: ${product.title}`);
-            console.log(`BestBuy URL: ${product.url}`);
-            console.log(`BestBuy Price: ${product.price}\n`);
+         //   console.log(`BestBuy Title: ${product.title}`);
+          //  console.log(`BestBuy URL: ${product.url}`);
+           // console.log(`BestBuy Price: ${product.price}\n`);
         }
         
     
