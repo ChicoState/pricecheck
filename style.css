@@ -2010,3 +2010,19 @@ progress::-webkit-progress-value {
 .dark-mode .savings-amount {
   text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
 }
+
+.button-link {
+  margin-top: 30px;
+  padding: 10px 10px;
+  background-color: var(--primary);
+  color: white;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  box-shadow: 0 2px 4px black;
+  transition: background-color 0.2s ease;
+}
+
+.button-link:hover {
+  background-color: var(--primary-dark);
+}
+

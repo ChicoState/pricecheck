@@ -654,8 +654,10 @@ function displayResults(response) {
 
     el.innerHTML = `
       <strong>${item.site}</strong><br>
-      ${priceInfo}<br>
-      <a href="${item.searchUrl}" target="_blank">Check Price</a>
+
+      ${priceInfo}<br><br>
+      <a href="${item.searchUrl}" target="_blank" class="button-link">Check Price</a>
+      
     `;
     resultDiv.appendChild(el);
   });
