@@ -4,12 +4,17 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const app = express();
 const PORT = process.env.PORT || 3000;
+const { scrapeAmazon, scrapeEbay, scrapeBestBuy } = require('./scrape-price');
+
 
 // Load environment variables from .env file
 dotenv.config();
 
 // Get API key from environment variables
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+
+const useClaude=true;
+if (useClaude){
 
 if (!ANTHROPIC_API_KEY) {
     console.error('ERROR: ANTHROPIC_API_KEY is not set in environment variables');
@@ -26,12 +31,10 @@ app.get('/', (req, res) => {
 });
 
 function constructProductAnalysisPrompt(productInfo) {
-    // Create safe values for the prompt
     const productNameSafe = productInfo.productName || 'Unknown Product';
     const priceSafe = productInfo.price || 'Unknown Price';
     const domainSafe = productInfo.domain || 'Unknown Website';
 
-    // Construct and return the prompt
     return `
       I'm looking at a product: "${productNameSafe}" with a price of ${priceSafe} on ${domainSafe}.
 
@@ -43,6 +46,7 @@ function constructProductAnalysisPrompt(productInfo) {
         - "searchUrl": a full URL to search for this product
         - "notes": any helpful pricing info or tips
 
+      Only include Amazon, eBay, or Best Buy in your suggestions.
 
       Format your response as JSON with this structure:
       {
@@ -61,54 +65,35 @@ function constructProductAnalysisPrompt(productInfo) {
     `;
 }
 
-// Proxy endpoint for Claude API
 app.post('/api/analyze-product', async (req, res) => {
     try {
         const { productInfo } = req.body;
-
-        // More detailed validation and debugging
         console.log('Request body:', req.body);
 
         if (!productInfo) {
-            console.error('Missing productInfo in request');
-            return res.status(400).json({
-                success: false,
-                message: 'Missing product information in request'
-            });
+            return res.status(400).json({ success: false, message: 'Missing product information in request' });
         }
 
-        // Validate required fields with detailed error messages
         if (!productInfo.productName) {
-            console.error('Missing productName in productInfo');
-            return res.status(400).json({
-                success: false,
-                message: 'Missing product name in request'
-            });
+            return res.status(400).json({ success: false, message: 'Missing product name in request' });
         }
 
-        // Handle undefined or null price gracefully
         if (!productInfo.price) {
             console.log('Warning: Missing price in productInfo, using placeholder');
             productInfo.price = 'unknown price';
         }
 
-        // Handle undefined or null domain gracefully
         if (!productInfo.domain) {
             console.log('Warning: Missing domain in productInfo, using placeholder');
             productInfo.domain = 'unknown website';
         }
 
-        console.log('Received product info:', JSON.stringify(productInfo, null, 2));
-
-        // Get the prompt from the dedicated function
         const prompt = constructProductAnalysisPrompt(productInfo);
 
         let responseData;
 
         try {
             console.log('Sending request to Claude API...');
-
-            // Make request to Anthropic API with correct format
             const response = await axios.post('https://api.anthropic.com/v1/messages', {
                 model: 'claude-3-7-sonnet-20250219',
                 max_tokens: 1024,
@@ -123,38 +108,91 @@ app.post('/api/analyze-product', async (req, res) => {
                 }
             });
 
-            console.log('Received response from Claude API');
-
-            // Extract the Claude response
             const claudeContent = response.data.content[0].text;
             console.log('Claude response content:', claudeContent.substring(0, 200) + '...');
 
-            // Look for JSON in the response
             try {
-                // Try to extract JSON from the text response
                 const jsonMatch = claudeContent.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
-                    responseData = JSON.parse(jsonMatch[0]);
+                    const parsedResponse = JSON.parse(jsonMatch[0]);
+
+                    // Filter only Amazon, eBay, or Best Buy
+                    const allowedSites = ['amazon.com', 'ebay.com', 'bestbuy.com'];
+                    const filteredAlternatives = (parsedResponse.alternatives || []).filter((alt) =>
+                        allowedSites.some(site => alt.searchUrl.toLowerCase().includes(site))
+                    );
+
+                    responseData = {
+                        searchTerms: parsedResponse.searchTerms,
+                        alternatives: filteredAlternatives
+                    };
+
+                    const scrapeResults = await Promise.all(filteredAlternatives.map(async (alt) => {
+                        try {
+                            if (alt.searchUrl.includes('amazon.com')) {
+                                const keyword = productInfo.productName
+                                .split(' ')      // Split only by spaces
+                                .slice(0, 4)     // Take the first 4 words
+                                .join(' ');      // Rejoin them into a single string
+                              
+                              return await scrapeAmazon(alt.searchUrl, keyword);
+                              
+                            }
+                           if (alt.searchUrl.includes('ebay.com')) {
+                                return await scrapeEbay(alt.searchUrl);
+                            }
+                            if (alt.searchUrl.includes('bestbuy.com')) {
+                               return await scrapeBestBuy(alt.searchUrl);
+                            }
+                        } catch (err) {
+                            console.error(`Error scraping ${alt.searchUrl}:`, err.message);
+                            return null;
+                        }
+                    }));
+                    
+                    const bestDeals = scrapeResults.filter(Boolean).sort((a, b) => a.price - b.price);
+                    responseData.bestDeals = bestDeals;
+                    console.log('lowest priced products!!!!');
+                    console.log(responseData.bestDeals)
+                    
+
+                    if (responseData.alternatives.length === 0) {
+                        throw new Error('No valid alternatives from Claude response');
+                    }
                 } else {
                     throw new Error('No JSON found in Claude response');
                 }
             } catch (parseError) {
-                console.error('Error parsing Claude response:', parseError);
-                throw parseError; // Re-throw to be caught by outer catch
+                console.error('Error parsing or filtering Claude response:', parseError);
+                const searchTerms = productInfo.productName.split(' ').slice(0, 3).join(' ');
+                responseData = {
+                    searchTerms,
+                    alternatives: [
+                        {
+                            site: "Amazon",
+                            searchUrl: `https://www.amazon.com/s?k=${encodeURIComponent(searchTerms)}`,
+                            notes: "Major retailer with competitive pricing"
+                        },
+                        {
+                            site: "eBay",
+                            searchUrl: `https://www.ebay.com/sch/i.html?_nkw=${encodeURIComponent(searchTerms)}`,
+                            notes: "Check for new and used options"
+                        },
+                        {
+                            site: "Best Buy",
+                            searchUrl: `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(searchTerms)}`,
+                            notes: "Great for electronics and appliances"
+                        }
+                    ]
+                };
             }
 
         } catch (apiError) {
             console.error('Claude API error:', apiError.message);
 
-            if (apiError.response) {
-                console.error('API response status:', apiError.response.status);
-                console.error('API response data:', JSON.stringify(apiError.response.data, null, 2));
-            }
-
-            // Create a fallback response when the API call fails
             const searchTerms = productInfo.productName.split(' ').slice(0, 3).join(' ');
             responseData = {
-                searchTerms: searchTerms,
+                searchTerms,
                 alternatives: [
                     {
                         site: "Amazon",
@@ -167,25 +205,19 @@ app.post('/api/analyze-product', async (req, res) => {
                         notes: "Check for new and used options"
                     },
                     {
-                        site: "Walmart",
-                        searchUrl: `https://www.walmart.com/search?q=${encodeURIComponent(searchTerms)}`,
-                        notes: "Often has lower prices than competitors"
+                        site: "Best Buy",
+                        searchUrl: `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(searchTerms)}`,
+                        notes: "Great for electronics and appliances"
                     }
                 ]
             };
         }
 
-        // Return the data - this happens whether the API call succeeded or failed
-        return res.json({
-            success: true,
-            data: responseData
-        });
+        return res.json({ success: true, data: responseData });
 
     } catch (error) {
-        // This is for any other unexpected errors in the route handler
         console.error('Unexpected error:', error.message);
 
-        // Create a fallback response with generic alternatives
         const searchTerms = productInfo && productInfo.productName
             ? productInfo.productName.split(' ').slice(0, 3).join(' ')
             : "product";
@@ -194,7 +226,7 @@ app.post('/api/analyze-product', async (req, res) => {
             success: false,
             message: `Error analyzing product: ${error.message}`,
             fallbackData: {
-                searchTerms: searchTerms,
+                searchTerms,
                 alternatives: [
                     {
                         site: "Amazon",
@@ -207,15 +239,16 @@ app.post('/api/analyze-product', async (req, res) => {
                         notes: "Check for new and used options"
                     },
                     {
-                        site: "Walmart",
-                        searchUrl: `https://www.walmart.com/search?q=${encodeURIComponent(searchTerms)}`,
-                        notes: "Often has lower prices than competitors"
+                        site: "Best Buy",
+                        searchUrl: `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(searchTerms)}`,
+                        notes: "Great for electronics and appliances"
                     }
                 ]
             }
         });
     }
 });
+}
 
 // Start server
 app.listen(PORT, () => {
