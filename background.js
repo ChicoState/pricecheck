@@ -4,10 +4,28 @@ const PROXY_SERVER_URL = 'http://localhost:3000/api/analyze-product';
 console.log("Service worker running");
 
 // On install, initialize a badge or do other setup
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   console.log("Extension installed!");
   chrome.action.setBadgeText({ text: "OFF" });
+  if(details.reason === 'install'){
+    chrome.notifications.create('pricechecker_install_notification',{
+	    type: 'basic',
+	    iconUrl: 'pricechecker.png',
+	    title: "Pricechecker Installed!",
+	    message: "Click the puzzle piece and pin Pricecheker for easy access!",
+	    priority: 2
+    });
+   }
 });
+
+
+//check price button clicked
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "openPopup") {
+    chrome.action.openPopup();
+  }
+});
+
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
