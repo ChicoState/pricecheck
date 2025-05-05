@@ -626,54 +626,43 @@ function getProductKey(product) {
 /**
  * Renders the results on the page.
  */
-function displayResults(response) {
+function displayResults(data) {
   const resultDiv = document.getElementById("result");
   resultDiv.innerHTML = ""; // Clear existing content
 
-  // Display error if present
-  if (!response?.success) {
-    resultDiv.innerHTML = `<p class="error">Error: ${response?.message || "Could not compare prices"}</p>`;
+  const bestDeals = data.bestDeals || [];
+
+  if (bestDeals.length === 0) {
+    resultDiv.innerHTML = '<p>No deals found.</p>';
     return;
   }
 
-  // Extract alternatives from the response
-  const alternatives = response.data.alternatives;
-
-  // Create visual elements for each alternative site
-  alternatives.forEach((item) => {
+  bestDeals.forEach((deal) => {
     const el = document.createElement("div");
     el.className = "result";
 
-    // Extract price info from notes if available
-    let priceInfo = "";
-    if (item.notes && item.notes.includes("Price:")) {
-      priceInfo = item.notes;
-    } else {
-      priceInfo = item.notes || "";
-    }
-
     el.innerHTML = `
-      <strong>${item.site}</strong><br>
-
-      ${priceInfo}<br><br>
-      <a href="${item.searchUrl}" target="_blank" class="button-link">Check Price</a>
-      
+      <p><strong>${deal.website}</strong></p>
+      <p>Product found: ${deal.title}</p>
+      <p>Price: $${deal.price}</p>
+      <a href="${deal.url}" target="_blank" class="button-link">View Product</a>
     `;
     resultDiv.appendChild(el);
   });
 
-  // Add summary text
+  // ✅ Fix incorrect access to searchTerms
   const summaryEl = document.createElement("p");
   summaryEl.style.fontWeight = "bold";
   summaryEl.style.marginTop = "15px";
-  summaryEl.innerHTML = `Search Terms: ${response.data.searchTerms}`;
+  summaryEl.innerHTML = `Search Terms: ${data.searchTerms}`;
   resultDiv.appendChild(summaryEl);
 
-  // Update savings info with a random estimated savings between $5–$50
-  const savedEstimate = Math.floor(Math.random() * 46) + 5; // 5–50
+  // Estimated savings
+  const savedEstimate = Math.floor(Math.random() * 46) + 5;
   document.getElementById("savings-info").textContent = `Estimated Savings: $${savedEstimate.toFixed(2)}`;
   document.getElementById("savings-progress").value = Math.min(savedEstimate, 100);
 }
+
 
 /**
  * Makes a fresh API call via your proxy server, then caches the results.
@@ -700,15 +689,16 @@ function doCompare(productData) {
       return response.json();
     })
     .then(data => {
-      // Cache the fresh result
+      // Cache the result
       const productKey = getProductKey(productData);
       chrome.storage.local.get(['productCache'], (store) => {
         const cache = store.productCache || {};
         cache[productKey] = data;
         chrome.storage.local.set({ productCache: cache });
       });
+    
 
-      displayResults(data);
+      displayResults(data); 
     })
     .catch(error => {
       console.error("Error fetching from server:", error);
