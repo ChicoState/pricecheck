@@ -13,6 +13,7 @@ async function scrapeAmazon(searchUrl, keyword,retries = 3) {
         try {
             const response = await axios.get(searchUrl, { headers });
             console.log(`Attempt ${attempt} - Status Code: ${response.status}`);
+            const website ="Amazon";
 
             const $ = cheerio.load(response.data);
             const results = $('div.s-main-slot div[data-component-type="s-search-result"]');
@@ -46,7 +47,8 @@ async function scrapeAmazon(searchUrl, keyword,retries = 3) {
                     lowestPriceProduct = {
                         title,
                         url: fullUrl,
-                        price
+                        price,
+                        website
                     };
                     lowestPrice = price; // Update the lowest price
                 }
@@ -90,12 +92,12 @@ async function scrapeEbay(searchUrl,retries = 3) {
 
             const $ = cheerio.load(response.data);
             const results = $('li.s-item');
-
+            const website ="eBay";
            //    const results = $('ul.srp-results');
 
             let lowestPriceProduct = null;
             let lowestPrice = Infinity; // Start with a very high price to ensure any valid price will be lower
-
+            
             for (let i = 0; i < results.length; i++) {
                 const result = results.eq(i);
 
@@ -111,7 +113,7 @@ async function scrapeEbay(searchUrl,retries = 3) {
                 const fullUrl = relativeUrl ? `${relativeUrl}` : null;
                 const priceText = priceElement.text().trim();
                 const price = priceText ? parseFloat(priceText.replace('$', '').replace(',', '')) : null;
-                
+               
                // console.log(`Ebay Product #${i + 1} ---`);
                 //console.log(`Title: ${title}`);
                 //console.log(`URL: ${fullUrl}`);
@@ -122,7 +124,9 @@ async function scrapeEbay(searchUrl,retries = 3) {
                     lowestPriceProduct = {
                         title,
                         url: fullUrl,
-                        price
+                        price,
+                        website
+
                     };
                     lowestPrice = price; // Update the lowest price
                 }
@@ -158,43 +162,46 @@ async function scrapeEbay(searchUrl,retries = 3) {
         console.log('Launching browser...');
         const browser = await puppeteer.launch({ headless: true });
         const page = await browser.newPage();
-    
+        website="BestBuy";
         await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
             '(KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36');
-    
+
         console.log(`Navigating to ${searchUrl}`);
         await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 0 });
-    
-        const products = await page.$$eval('li.sku-item', items => {
+
+        const products = await page.$$eval('li.product-list-item', items => {
             return items.map(item => {
-                const title = item.querySelector('h4.sku-title a')?.textContent?.trim() || null;
-                const url = item.querySelector('h4.sku-title a')?.href || null;
-                const priceText = item.querySelector('div.priceView-hero-price span')?.textContent?.trim() || null;
+                const title = item.querySelector('img[data-testid="product-image"]')?.alt?.trim() || null;
+
+               console.log(title);
+                const url = item.querySelector('a.product-list-item-link')?.href || null;
+                const priceText = item.querySelector('div.customer-price')?.textContent?.trim() || null;
                 const price = priceText ? parseFloat(priceText.replace('$', '').replace(',', '')) : null;
-               
-                return { title, url, price };
+
+                return { title, url, price,  website: "BestBuy" };
             });
         });
 
-        for (const product of products) {
-            
-         //   console.log(`BestBuy Title: ${product.title}`);
-          //  console.log(`BestBuy URL: ${product.url}`);
-           // console.log(`BestBuy Price: ${product.price}\n`);
-        }
-        
-    
+      // for (const product of products) {
+//       console.log(`BestBuy Title: ${product.title}`);
+  //         console.log(`BestBuy URL: ${product.url}`);
+    //        console.log(`BestBuy Price: ${product.price}\n`);
+      //  }
+
+
         await browser.close();
        // console.log(products);
         const validProducts = products.filter(p => p.title && p.url && p.price !== null);
         const lowest = validProducts.reduce((lowest, current) => current.price < lowest.price ? current : lowest, { price: Infinity });
-    
+        console.log("bestbuy test");
+        console.log(lowest);
         return lowest.price !== Infinity ? lowest : 'No valid products found.';
     }
+
     
-   // scrapeBestBuy('https://www.bestbuy.com/site/searchpage.jsp?st=iphone+13+128gb+midnight+unlocked')
-     //   .then(result => console.log('✅ Final Result:', result))
-       // .catch(err => console.error('❌ Error:', err));
+  // scrapeBestBuy('https://www.bestbuy.com/site/searchpage.jsp?st=iphone+13+128gb+midnight+unlocked')
+    //    .then(result => console.log('✅ Final Result:', result))
+      //  .catch(err => console.error('❌ Error:', err));
     
 
 
