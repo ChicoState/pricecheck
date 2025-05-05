@@ -38,10 +38,7 @@ async function scrapeAmazon(searchUrl, keyword,retries = 3) {
                 const price = priceText ? parseFloat(priceText.replace('$', '').replace(',', '')) : null;
                 
                 if (title && title.includes(keyword)) {
-               // console.log(`Amazon Product #${i + 1} ---`);
-                //console.log(`Title: ${title}`);
-                //console.log(`URL: ${fullUrl}`);
-                //console.log(`Price: ${priceText}\n`);
+               
 
                 if (title && fullUrl && price !== null && price < lowestPrice) {
                     lowestPriceProduct = {
@@ -71,10 +68,7 @@ async function scrapeAmazon(searchUrl, keyword,retries = 3) {
     return 'Failed to fetch page after all attempts.';
 }
 
-// Example usage
-//scrapeAmazon('https://www.amazon.com/s?k=iphone+13+128GB+Midnight+Unlocked', 'iPhone 13')
- //.then(result => console.log('✅ Final Result:', result))
-   // .catch(err => console.error('Error during scrapeAmazon:', err));
+
 
 
 
@@ -93,16 +87,14 @@ async function scrapeEbay(searchUrl,retries = 3) {
             const $ = cheerio.load(response.data);
             const results = $('li.s-item');
             const website ="eBay";
-           //    const results = $('ul.srp-results');
+          
 
             let lowestPriceProduct = null;
-            let lowestPrice = Infinity; // Start with a very high price to ensure any valid price will be lower
+            let lowestPrice = Infinity; 
             
             for (let i = 0; i < results.length; i++) {
                 const result = results.eq(i);
 
-                // Skip sponsored items
-               // if (result.find('.puis-sponsored-label-text').length > 0) continue;
                
                 const titleElement = result.find('div.s-item__title span[role="heading"]').first();
                 const urlElement = result.find('a.s-item__link').first();
@@ -114,10 +106,7 @@ async function scrapeEbay(searchUrl,retries = 3) {
                 const priceText = priceElement.text().trim();
                 const price = priceText ? parseFloat(priceText.replace('$', '').replace(',', '')) : null;
                
-               // console.log(`Ebay Product #${i + 1} ---`);
-                //console.log(`Title: ${title}`);
-                //console.log(`URL: ${fullUrl}`);
-                //console.log(`Price: ${priceText}\n`);
+              
 
                 if(title!== 'Shop on eBay'){
                 if (title && fullUrl && price !== null && price < lowestPrice) {
@@ -151,10 +140,7 @@ async function scrapeEbay(searchUrl,retries = 3) {
 }
 
 
-// Example usage
-//scrapeEbay('https://www.ebay.com/sch/i.html?_nkw=apple+iphone+13+128gb+unlocked&_sacat=0&_from=R40&_trksid=p2334524.m570.l1311&_odkw=iphone+13&_osacat=0&_sop=12')
-  //.then(result => console.log('✅ Final Result:', result))
-    //.catch(err => console.error('Error during scrapeAmazon:', err));
+
 
     const puppeteer = require('puppeteer');
 
@@ -182,15 +168,11 @@ async function scrapeEbay(searchUrl,retries = 3) {
             });
         });
 
-      // for (const product of products) {
-//       console.log(`BestBuy Title: ${product.title}`);
-  //         console.log(`BestBuy URL: ${product.url}`);
-    //        console.log(`BestBuy Price: ${product.price}\n`);
-      //  }
+ 
 
 
         await browser.close();
-       // console.log(products);
+     
         const validProducts = products.filter(p => p.title && p.url && p.price !== null);
         const lowest = validProducts.reduce((lowest, current) => current.price < lowest.price ? current : lowest, { price: Infinity });
         console.log("bestbuy test");
@@ -199,9 +181,7 @@ async function scrapeEbay(searchUrl,retries = 3) {
     }
 
     
-  // scrapeBestBuy('https://www.bestbuy.com/site/searchpage.jsp?st=iphone+13+128gb+midnight+unlocked')
-    //    .then(result => console.log('✅ Final Result:', result))
-      //  .catch(err => console.error('❌ Error:', err));
+  
     
 
 

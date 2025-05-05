@@ -625,10 +625,11 @@ function getProductKey(product) {
 
 /**
  * Renders the results on the page.
+ * Uses data.BestDeals to display product information obtained from each site
  */
 function displayResults(data) {
   const resultDiv = document.getElementById("result");
-  resultDiv.innerHTML = ""; // Clear existing content
+  resultDiv.innerHTML = "";
 
   const bestDeals = data.bestDeals || [];
 
@@ -650,14 +651,14 @@ function displayResults(data) {
     resultDiv.appendChild(el);
   });
 
-  // ✅ Fix incorrect access to searchTerms
+  
   const summaryEl = document.createElement("p");
   summaryEl.style.fontWeight = "bold";
   summaryEl.style.marginTop = "15px";
   summaryEl.innerHTML = `Search Terms: ${data.searchTerms}`;
   resultDiv.appendChild(summaryEl);
 
-  // Estimated savings
+  
   const savedEstimate = Math.floor(Math.random() * 46) + 5;
   const savingsInfo = document.getElementById("savings-info");
 if (savingsInfo) {
