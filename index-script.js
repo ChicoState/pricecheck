@@ -659,8 +659,16 @@ function displayResults(data) {
 
   // Estimated savings
   const savedEstimate = Math.floor(Math.random() * 46) + 5;
-  document.getElementById("savings-info").textContent = `Estimated Savings: $${savedEstimate.toFixed(2)}`;
-  document.getElementById("savings-progress").value = Math.min(savedEstimate, 100);
+  const savingsInfo = document.getElementById("savings-info");
+if (savingsInfo) {
+  savingsInfo.textContent = `Estimated Savings: $${savedEstimate.toFixed(2)}`;
+}
+
+const savingsProgress = document.getElementById("savings-progress");
+if (savingsProgress) {
+  savingsProgress.value = Math.min(savedEstimate, 100);
+}
+
 }
 
 
