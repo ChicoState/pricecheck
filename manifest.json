@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "notifications"
   ],
   "host_permissions": [
     "https://api.example.com/*",
@@ -33,6 +34,7 @@
         "https://*.ebay.com/*"
       ],
       "js": [
+        "content.js",
         "content-price.js"
       ]
     }
