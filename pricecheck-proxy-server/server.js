@@ -66,6 +66,10 @@ function constructProductAnalysisPrompt(productInfo) {
 }
 
 app.post('/api/analyze-product', async (req, res) => {
+    const { productInfo } = req.body;
+    if (!productInfo) {
+        return res.status(400).json({ error: "Missing productInfo in request body" });
+      }
     try {
         const { productInfo } = req.body;
         console.log('Request body:', req.body);
@@ -142,12 +146,16 @@ app.post('/api/analyze-product', async (req, res) => {
                                 return await scrapeEbay(alt.searchUrl);
                             }
                             if (alt.searchUrl.includes('bestbuy.com')) {
-                               return await scrapeBestBuy(alt.searchUrl);
-                            }
+                              return await scrapeBestBuy(alt.searchUrl);
+                           }
                         } catch (err) {
                             console.error(`Error scraping ${alt.searchUrl}:`, err.message);
                             return null;
                         }
+                       
+                        
+                    
+                    
                     }));
                     
                     const bestDeals = scrapeResults.filter(Boolean).sort((a, b) => a.price - b.price);
@@ -156,6 +164,9 @@ app.post('/api/analyze-product', async (req, res) => {
                     console.log(responseData.bestDeals)
                     
 
+
+
+                    
                     if (responseData.alternatives.length === 0) {
                         throw new Error('No valid alternatives from Claude response');
                     }
@@ -209,12 +220,17 @@ app.post('/api/analyze-product', async (req, res) => {
                         searchUrl: `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(searchTerms)}`,
                         notes: "Great for electronics and appliances"
                     }
-                ]
+                ],
+                bestDeals: [] 
+
             };
         }
 
-        return res.json({ success: true, data: responseData });
-
+     
+       // responseData.bestDeals = responseData.bestDeals || [];
+        return res.json(responseData);
+    
+    
     } catch (error) {
         console.error('Unexpected error:', error.message);
 
@@ -247,6 +263,7 @@ app.post('/api/analyze-product', async (req, res) => {
             }
         });
     }
+    
 });
 }
 
