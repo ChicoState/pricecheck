@@ -1547,3 +1547,28 @@ body.dark-mode {
 .button-link:hover {
   background-color: var(--primary-dark);
 }
+
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  padding: 10px 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  background-color: #e5e7eb;
+  color: #111827;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tab.active {
+  background-color:#3498db;
+  color: white;
+}

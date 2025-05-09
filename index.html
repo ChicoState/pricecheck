@@ -130,6 +130,17 @@
         </div>
       </button>
     </nav>
+
+    <div class="tabs">
+      <button id="compare-tab" class="tab active">Compare Prices</button>
+      <button id="history-tab" class="tab">Product History</button>
+    </div>
+
+    <div id="compare-view">...</div>
+    <div id="history-view" style="display: none;">
+    <div id="history" class="chat-results"></div>
+    </div>
+
     <div class="dashboard-content">
       <div class="chat-column">
         <div class="welcome-message">
@@ -155,6 +166,19 @@
       </div>
     </div>
   </div>
+
+  <div id="history-view" style="display: none;">
+    <div class="dashboard-content">
+      <div class="chat-column">
+        <div class="popup-container">
+          <h2 class="title">Product History</h2>
+          <div id="history" class="chat-results">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
   <script src="popup.js"></script>
   <script src="index-script.js"></script>
