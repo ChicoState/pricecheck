@@ -7,7 +7,7 @@
     "activeTab",
     "scripting",
     "storage",
-    "notifications"
+    "tabs"
   ],
   "host_permissions": [
     "https://api.example.com/*",
@@ -15,7 +15,8 @@
     "https://*.walmart.com/*",
     "https://*.bestbuy.com/*",
     "https://*.ebay.com/*",
-    "http://localhost/*"
+    "http://localhost/*",
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "index.html",
