@@ -35,6 +35,7 @@
         "https://*.ebay.com/*"
       ],
       "js": [
+        "content.js",
         "content-price.js"
       ]
     }
