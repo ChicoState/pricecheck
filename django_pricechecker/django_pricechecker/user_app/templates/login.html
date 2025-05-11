@@ -1,0 +1,184 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Pricechecker - Login</title>
+</head>
+<body>
+    <h1>Login to Pricechecker</h1>
+
+    {% if error %}
+      <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+      {% csrf_token %}
+      <label>Username:</label>
+      <input type="text" name="username" required />
+
+      <br><br>
+
+      <label>Password:</label>
+      <input type="password" name="password" required />
+
+      <br><br>
+
+      <button type="submit">Login</button>
+    </form>
+</body>
+</html> -->
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Pricechecker - Login</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="auth-container">
+      <h1>Login to Pricechecker</h1>
+      {% if error %}
+        <p class="error">{{ error }}</p>
+      {% endif %}
+      <form method="POST">
+        {% csrf_token %}
+        <label>Username:</label>
+        <input type="text" name="username" required /><br><br>
+        <label>Password:</label>
+        <input type="password" name="password" required /><br><br>
+        <button type="submit" class="button">Login</button>
+      </form>
+      <p>Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+    </div>
+</body>
+</html> -->
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pricechecker - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <div class="auth-container">
+      <div class="auth-card">
+        <h1 class="auth-title">Pricechecker</h1>
+        <p class="auth-desc">Welcome back! Log in to your account.</p>
+        {% if error %}
+          <p class="error">{{ error }}</p>
+        {% endif %}
+        <form method="POST">
+          {% csrf_token %}
+          <div class="input-group">
+            <label for="username">Username</label>
+            <input type="text" name="username" id="username" required>
+          </div>
+          <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" name="password" id="password" required>
+          </div>
+          <button type="submit" class="auth-button">Login</button>
+        </form>
+        <p class="auth-link">Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+      </div>
+    </div>
+  </body>
+</html> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Pricechecker - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+        .navbar {
+            background-color: #4a90e2;
+            padding: 1rem;
+            color: white;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-top: 1rem;
+        }
+        input {
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #357ae8;
+        }
+        .signup-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Pricechecker</div>
+    </nav>
+    
+    <div class="container">
+        <h1>Login to Pricechecker</h1>
+
+        {% if error %}
+          <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+          {% csrf_token %}
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" required />
+
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" required />
+
+          <button type="submit">Login</button>
+        </form>
+
+        <p class="signup-link">Don't have an account? <a href="{% url 'signup' %}">Sign Up</a></p>
+    </div>
+</body>
+</html>
