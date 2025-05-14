@@ -1,4 +1,4 @@
-const { scrapeAmazon, scrapeEbay, scrapeBestBuy } = require('./scrape-price.js'); // update with your file name
+const { scrapeAmazon, scrapeEbay, scrapeBestBuy } = require('./scrape-price.js'); 
 jest.setTimeout(20000); 
 
 describe('Ebay test', () => {
@@ -30,7 +30,6 @@ describe('Ebay test', () => {
        console.log('eBay result:', result);
       });
 
-
 });
 
 
@@ -38,7 +37,7 @@ describe('Ebay test', () => {
 describe('Amazon test', () => {
 
 
-    test('scrapeAmazon should return lowest price for "iphone 13"', async () => {
+    test('scrapeAmazon should return lowest price for "iphone 13 128gb midnight unlocked"', async () => {
         const url = 'https://www.amazon.com/s?k=Apple+iPhone+13%2C+128GB%2C+Midnight+-+Unlocked+%28Renewed%29&crid=26YIUOTTYTBPA&sprefix=apple+iphone+13%2C+128gb%2C+midnight+-+unlocked+renewed+%2Caps%2C338&ref=nb_sb_noss_2';
         const result = await scrapeAmazon(url, 'Apple iPhone 13');
         expect(result).toHaveProperty('price');
@@ -74,7 +73,7 @@ describe('BestBuy test', () => {
 
 
 
-    test('scrapeBestBuy should return lowest price for "Iphone 13"', async () => {
+    test('scrapeBestBuy should return lowest price for "iphone 13 128gb midnight unlocked"', async () => {
         const url = 'https://www.bestbuy.com/site/searchpage.jsp?st=iphone+13+128gb+midnight+unlocked&id=pcat17071';
         const result = await scrapeBestBuy(url);
         expect(result).toHaveProperty('price');
