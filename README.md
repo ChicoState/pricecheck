@@ -40,6 +40,16 @@
    - Click the Pricechecker icon.
    - Click **Compare Prices** to see results.
    - Use **Login** to open the Django login page.
+4. **Run the local server.**
+   - Navigate to the pricecheck-proxy-server
+   - install npm if you haven't already
+     ```bash
+     npm install
+     ```
+   - run the local server by running the following command:
+     ```bash
+     npm start
+     ```
 
 ### 2) Django + Extension (Optional)  
 1. **Setup Django**  
