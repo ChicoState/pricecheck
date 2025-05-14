@@ -1,3 +1,8 @@
+/**
+ * Extract product data from current webpage
+ * Supports multiple e-commerce sites with fallbacks for generic sites
+ * @returns {Object} Extracted product data
+ */
 function extractProductData() {
   let title = "";
   let price = "";
@@ -6,45 +11,72 @@ function extractProductData() {
 
   console.log("Extracting product data from: " + domain);
 
-  // Common selectors for Amazon
+  // Amazon-specific extraction
   if (domain.includes('amazon')) {
-    title = document.querySelector("#productTitle")?.textContent.trim();
-    price = document.querySelector("#priceblock_ourprice, #priceblock_dealprice, .a-price .a-offscreen")?.textContent.trim();
-    if (!price) {
+    // Title extraction
+    title = document.querySelector("#productTitle")?.textContent.trim() || "";
+    
+    // Price extraction - try multiple selectors
+    const priceElement = document.querySelector("#priceblock_ourprice, #priceblock_dealprice, .a-price .a-offscreen");
+    if (priceElement) {
+      price = priceElement.textContent.trim();
+    } else {
       const priceElements = document.querySelectorAll('.a-price');
       if (priceElements.length > 0) {
-        price = priceElements[0].textContent.trim();
+        const offscreenPrice = priceElements[0].querySelector('.a-offscreen');
+        price = offscreenPrice ? offscreenPrice.textContent.trim() : priceElements[0].textContent.trim();
       }
     }
   }
-
-  // Walmart selectors
+  
+  // Walmart-specific extraction
   else if (domain.includes('walmart')) {
-    title = document.querySelector("h1.prod-ProductTitle")?.textContent.trim();
-    if (!title) {
-      title = document.querySelector("[data-automation-id='product-title']")?.textContent.trim();
+    // Try different title selectors in order of preference
+    const titleSelectors = [
+      "h1.prod-ProductTitle",
+      "[data-automation-id='product-title']",
+      ".product-title"
+    ];
+    
+    for (const selector of titleSelectors) {
+      const titleElement = document.querySelector(selector);
+      if (titleElement) {
+        title = titleElement.textContent.trim();
+        break;
+      }
     }
-    price = document.querySelector("span.price-characteristic")?.textContent.trim();
-    if (!price) {
-      price = document.querySelector("[data-automation-id='product-price']")?.textContent.trim();
+    
+    // Try different price selectors in order of preference
+    const priceSelectors = [
+      "span.price-characteristic",
+      "[data-automation-id='product-price']",
+      ".product-price"
+    ];
+    
+    for (const selector of priceSelectors) {
+      const priceElement = document.querySelector(selector);
+      if (priceElement) {
+        price = priceElement.textContent.trim();
+        break;
+      }
     }
   }
-
-  // eBay selectors
+  
+  // eBay-specific extraction
   else if (domain.includes('ebay')) {
-    title = document.querySelector("#itemTitle")?.textContent.replace("Details about  \xa0", "").trim();
-    price = document.querySelector("#prcIsum, #mm-saleDscPrc")?.textContent.trim();
+    // eBay often prefixes titles with "Details about"
+    const ebayTitle = document.querySelector("#itemTitle")?.textContent || "";
+    title = ebayTitle.replace(/^Details about\s+/, "").trim();
+    price = document.querySelector("#prcIsum, #mm-saleDscPrc")?.textContent.trim() || "";
   }
-
-  // Best Buy selectors
+  
+  // Best Buy-specific extraction
   else if (domain.includes('bestbuy')) {
-    title = document.querySelector('.sku-title h1')?.textContent.trim();
-    price = document.querySelector('.priceView-customer-price span')?.textContent.trim();
+    title = document.querySelector('.sku-title h1')?.textContent.trim() || "";
+    price = document.querySelector('.priceView-customer-price span')?.textContent.trim() || "";
   }
 
-  // Generic fallback
   if (!title) {
-    // Try to find product name by common patterns
     const possibleTitleElements = document.querySelectorAll('h1, [class*="title"], [id*="title"], [class*="product-name"], [id*="product-name"]');
     if (possibleTitleElements.length > 0) {
       title = possibleTitleElements[0].textContent.trim();
@@ -54,28 +86,85 @@ function extractProductData() {
   }
 
   if (!price) {
-    // Try to find price by common patterns
-    const possiblePriceElements = document.querySelectorAll('[class*="price"], [id*="price"], .price, #price');
-    if (possiblePriceElements.length > 0) {
-      const priceText = possiblePriceElements[0].textContent.trim();
-      // Basic regex to extract price in format $XX.XX or XX.XX
-      const priceMatch = priceText.match(/\$?(\d+\.\d{2})/);
-      price = priceMatch ? priceMatch[0] : priceText;
+    const salePriceElement = document.querySelector('.sale-price');
+    if (salePriceElement) {
+      price = salePriceElement.textContent.trim();
     } else {
-      price = "Price not found";
+      const possiblePriceElements = document.querySelectorAll('[class*="price"], [id*="price"], .price, #price');
+      if (possiblePriceElements.length > 0) {
+        const priceText = possiblePriceElements[0].textContent.trim();
+        
+        const dollarMatch = priceText.match(/\$\s*(\d+(?:\.\d{2})?)/);
+        if (dollarMatch) {
+          price = `$${dollarMatch[1]}`;
+        } else {
+          const usdMatch = priceText.match(/USD\s*(\d+(?:\.\d{2})?)/i);
+          if (usdMatch) {
+            price = `$${usdMatch[1]}`;
+          } else {
+            const numberMatch = priceText.match(/(\d+\.\d{2})/);
+            if (numberMatch) {
+              price = `$${numberMatch[0]}`;
+            } else {
+              price = priceText;
+            }
+          }
+        }
+      } else {
+        price = "Price not found";
+      }
     }
   }
 
+  if (price && price.match(/^\d/) && !price.startsWith('$')) {
+    price = `$${price}`;
+  }
+
   console.log("Extracted product data:", { title, price, domain, url });
+  
   return {
     title,
     price,
     domain,
     url,
-    productName: title // Add productName for compatibility with our API
+    productName: title // For API compatibility
   };
 }
 
-// Automatically send the extracted product data to the extension
-const productData = extractProductData();
-chrome.runtime.sendMessage({ type: "PRODUCT_DATA", data: productData });
+/**
+ * Send the extracted product data to the background script
+ */
+function autoExtractAndSendData() {
+  const productData = extractProductData();
+  
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+    chrome.runtime.sendMessage({
+      type: 'PRODUCT_DATA',
+      data: productData
+    }, function(response) {
+      if (chrome.runtime.lastError) {
+        console.error('Error sending product data:', chrome.runtime.lastError);
+      }
+    });
+  } else {
+    console.log('Chrome runtime not available for sending messages');
+  }
+}
+
+// Auto-execute if not in test environment
+if (typeof jest === 'undefined' && typeof window !== 'undefined') {
+  autoExtractAndSendData();
+}
+
+// Export functions for testing and module usage
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    extractProductData,
+    autoExtractAndSendData
+  };
+} else if (typeof window !== 'undefined') {
+  window.contentPrice = {
+    extractProductData,
+    autoExtractAndSendData
+  };
+}
