@@ -78,4 +78,12 @@ function extractProductData() {
 
 // Automatically send the extracted product data to the extension
 const productData = extractProductData();
-chrome.runtime.sendMessage({ type: "PRODUCT_DATA", data: productData });
+chrome.runtime.sendMessage({
+  type: 'PRODUCT_DATA',
+  data: productData
+}, () => {
+  // Handle response if needed
+  if (chrome.runtime.lastError) {
+    console.error('Error sending product data:', chrome.runtime.lastError);
+  }
+});
